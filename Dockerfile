@@ -32,7 +32,7 @@ ENV FLASK_APP=app
 FROM source_code AS app_setup
 ENV PROMETHEUS_MULTIPROC_DIR /tmp
 ENV prometheus_multiproc_dir /tmp
-ENV METRICS_PORT 9266
+ENV METRICS_PORT 9233
 
 # can use `run_dev.sh` or `run_prod.sh`
 CMD ["sh", "run_prod.sh"]

@@ -26,7 +26,7 @@ ENV_TP_LINK_ROUTER_EXPORTER_HOST = os.getenv(
     default="0.0.0.0")
 ENV_TP_LINK_ROUTER_EXPORTER_PORT = int(os.getenv(
     "TP_LINK_ROUTER_EXPORTER_PORT",
-    default=5566))
+    default=3133))
 
 
 class base_config(object):
