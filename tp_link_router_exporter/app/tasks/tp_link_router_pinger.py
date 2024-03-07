@@ -6,7 +6,7 @@ from ..config import base_config
 log = app.logger
 
 
-class RPiPowerPinger(object):
+class TPLinkRouterPinger(object):
     # FIXME: doesn't work normally because of app context
     @classmethod
     def get_metrics_interval_seconds(cls):
@@ -17,8 +17,8 @@ class RPiPowerPinger(object):
         return os.environ.get('METRICS_INTERVAL_SECONDS', default_interval)
 
     @classmethod
-    def should_schedule_rpi_power_metrics_updates(cls):
-        key = "SHOULD_SCHEDULE_RPI_POWER_METRICS_UPDATES"
+    def should_schedule_router_metrics_updates(cls):
+        key = "SHOULD_SCHEDULE_ROUTER_METRICS_UPDATES"
         config_value = app.config.get(key)
         c_m = f'for {key} => {config_value}'
         log.debug(c_m)

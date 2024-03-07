@@ -18,11 +18,11 @@ def create_app(config=config.base_config):
         app.logger.debug(f'!!!!!!!!!!! Set log_level: {log_level}')
 
         # Check to possibly include our Tasks
-        from .tasks.rpi_power_pinger import RPiPowerPinger
-        if RPiPowerPinger.should_schedule_rpi_power_metrics_updates():
-            from .tasks import rpi_power  # noqa: F401
+        from .tasks.tp_link_router_pinger import TPLinkRouterPinger
+        if TPLinkRouterPinger.should_schedule_router_metrics_updates():
+            from .tasks import tp_link_router  # noqa: F401
         else:
-            s_m = 'Skipping scheduling of RPi Power metrics updates'
+            s_m = 'Skipping scheduling of TP-Link Router metrics updates'
             app.logger.warning(s_m)
 
         register_extensions(app)

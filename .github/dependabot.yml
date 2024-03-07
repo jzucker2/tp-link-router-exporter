@@ -40,5 +40,5 @@ updates:
       - dependencies
     allow:
       # allow updates for specific clients
-      - dependency-name: "rpi-bad-power"
+      - dependency-name: "tplinkrouterc6u"
       - dependency-name: "Flask-APScheduler"

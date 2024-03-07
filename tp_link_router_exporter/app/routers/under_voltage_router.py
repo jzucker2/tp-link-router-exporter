@@ -1,5 +1,5 @@
 from flask import current_app as app
-from ..clients.rpi_bad_power import RPiBadPower
+from ..clients.tp_link_router import TPLinkRouter
 from ..metrics import Metrics
 from .router import Router, RouterException
 
@@ -14,7 +14,7 @@ class UnderVoltageRouterException(RouterException):
 class UnderVoltageRouter(Router):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.rpi_bad_power = RPiBadPower.get_client()
+        self.router_client = TPLinkRouter.get_client()
 
     @property
     def service(self):
