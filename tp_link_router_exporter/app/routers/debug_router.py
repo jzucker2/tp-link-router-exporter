@@ -26,9 +26,8 @@ class DebugRouter(Router):
             p_m = 'handle debug route'
             log.debug(p_m)
             final_response = self.base_response('debug')
-            pass
-            # result = self.rpi_power_client.check_under_voltage()
-            # log.info(f'result: {result}')
+            result = self.router_client.test_debug_router()
+            log.info(f'result: {result}')
             # if result:
-            #     final_response['rpi_bad_power'] = result
+            #     final_response['router'] = result
             return final_response

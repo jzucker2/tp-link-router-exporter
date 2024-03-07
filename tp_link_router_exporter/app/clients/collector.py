@@ -36,6 +36,9 @@ class Collector(object):
             event=event.value,
         ).inc()
 
+    def test_debug_router(self):
+        return self.router_client.test_debug()
+
     def check_under_voltage(self):
         pass
         # event = self.rpi_power_client.check_under_voltage()
