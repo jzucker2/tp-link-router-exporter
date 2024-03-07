@@ -16,20 +16,17 @@ services:
       timeout: 60s
       retries: 5
       start_period: 80s
+    volumes:
+      - ./exporter_config.yaml:/etc/tp_link_router_exporter/exporter_config.yaml
     ports:
       - "3133:3133"
       - "9233:9233"
-    environment:
-      # like `http://10.0.1.1` or `http://tplinkwifi.net`
-      - TP_LINK_ROUTER_IP=${TP_LINK_ROUTER_IP}
-      # this you can make up to be whatever you want, like `Living Room Router`
-      - TP_LINK_ROUTER_NAME=${TP_LINK_ROUTER_NAME}
-      # hopefully something secret!
-      - TP_LINK_ROUTER_PASSWORD=${TP_LINK_ROUTER_PASSWORD}
-      # TODO: clean up when I have better implementation
-      - TP_LINK_ROUTER_IP_2=${TP_LINK_ROUTER_IP_2}
-      # hopefully something secret!
-      - TP_LINK_ROUTER_PASSWORD_2=${TP_LINK_ROUTER_PASSWORD_2}
-      - TP_LINK_ROUTER_NAME_2=${TP_LINK_ROUTER_NAME_2}
+#    environment:
+#      # like `http://10.0.1.1` or `http://tplinkwifi.net`
+#      - TP_LINK_ROUTER_IP=${TP_LINK_ROUTER_IP}
+#      # this you can make up to be whatever you want, like `Living Room Router`
+#      - TP_LINK_ROUTER_NAME=${TP_LINK_ROUTER_NAME}
+#      # hopefully something secret!
+#      - TP_LINK_ROUTER_PASSWORD=${TP_LINK_ROUTER_PASSWORD}
     stdin_open: true
     tty: true

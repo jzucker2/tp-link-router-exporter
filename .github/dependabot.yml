@@ -42,3 +42,4 @@ updates:
       # allow updates for specific clients
       - dependency-name: "tplinkrouterc6u"
       - dependency-name: "Flask-APScheduler"
+      - dependency-name: "PyYAML"
