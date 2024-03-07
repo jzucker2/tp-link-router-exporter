@@ -1,8 +1,7 @@
 from flask import current_app as app
 from ..utils import global_get_now
-from ..common.voltage_events import VoltageEvents
 from ..metrics import Metrics
-from .rpi_bad_power import RPiBadPower
+from .tp_link_router import TPLinkRouter
 
 
 log = app.logger
@@ -14,14 +13,14 @@ class CollectorException(Exception):
 
 class Collector(object):
     @classmethod
-    def get_client(cls, rpi_power_client=None):
-        if not rpi_power_client:
-            rpi_power_client = RPiBadPower.get_client()
-        return cls(rpi_power_client)
+    def get_client(cls, router_client=None):
+        if not router_client:
+            router_client = TPLinkRouter.get_client()
+        return cls(router_client)
 
-    def __init__(self, rpi_power_client):
+    def __init__(self, router_client):
         super().__init__()
-        self.rpi_power_client = rpi_power_client
+        self.router_client = router_client
         self._last_power_value = None
 
     @classmethod
@@ -38,17 +37,18 @@ class Collector(object):
         ).inc()
 
     def check_under_voltage(self):
-        event = self.rpi_power_client.check_under_voltage()
-        self._inc_voltage_event(event)
-        if event == VoltageEvents.SYSTEM_NOT_SUPPORTED:
-            Metrics.SYSTEM_SUPPORTED_VALUE.set(0)
-            # TODO: would be cool to do something else here
-            return None
-        else:
-            Metrics.SYSTEM_SUPPORTED_VALUE.set(1)
-            final_value = event.under_voltage_value
-            Metrics.UNDER_VOLTAGE_VALUE.set(final_value)
-            return final_value
+        pass
+        # event = self.rpi_power_client.check_under_voltage()
+        # self._inc_voltage_event(event)
+        # if event == VoltageEvents.SYSTEM_NOT_SUPPORTED:
+        #     Metrics.SYSTEM_SUPPORTED_VALUE.set(0)
+        #     # TODO: would be cool to do something else here
+        #     return None
+        # else:
+        #     Metrics.SYSTEM_SUPPORTED_VALUE.set(1)
+        #     final_value = event.under_voltage_value
+        #     Metrics.UNDER_VOLTAGE_VALUE.set(final_value)
+        #     return final_value
 
     def update_rpi_power_metrics(self):
         return self.check_under_voltage()
