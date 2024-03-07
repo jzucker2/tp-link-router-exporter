@@ -1,4 +1,5 @@
 from flask import current_app as app
+from ..clients.env_vars import EnvVars
 from ..clients.collector import Collector
 from ..metrics import Metrics
 from .router import Router, RouterException
@@ -14,7 +15,24 @@ class CollectorRouterException(RouterException):
 class CollectorRouter(Router):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.collector = Collector.get_client()
+        self.collector = Collector.get_collector()
+        self._collectors = None
+
+    @property
+    def collectors(self):
+        if not self._collectors:
+            collectors = self.create_collectors()
+            self._collectors = collectors
+        return self._collectors
+
+    @classmethod
+    def create_collectors(cls):
+        collector = Collector.get_collector(
+            router_ip=EnvVars.get_default_router_ip(),
+            router_password=EnvVars.get_default_router_password())
+        return [
+            collector,
+        ]
 
     @property
     def service(self):
@@ -26,7 +44,8 @@ class CollectorRouter(Router):
             p_m = 'handle simple collector route'
             log.debug(p_m)
             final_response = self.base_response('simple')
-            result = self.collector.get_router_metrics()
+            collector = Collector.get_collector()
+            result = collector.get_router_metrics()
             r_m = f'self.collector: {self.collector} got result: {result}'
             log.debug(r_m)
             return final_response
@@ -37,7 +56,8 @@ class CollectorRouter(Router):
             p_m = 'handle collector metrics update route'
             log.debug(p_m)
             final_response = self.base_response('metrics_update')
-            result = self.collector.update_router_metrics()
-            r_m = f'self.collector: {self.collector} got result: {result}'
-            log.debug(r_m)
+            for collector in self.collectors:
+                result = collector.update_router_metrics()
+                r_m = f'self.collector: {self.collector} got result: {result}'
+                log.info(r_m)
             return final_response

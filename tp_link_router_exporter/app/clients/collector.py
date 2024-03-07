@@ -15,9 +15,9 @@ class CollectorException(Exception):
 
 class Collector(object):
     @classmethod
-    def get_client(cls, router_client=None):
+    def get_collector(cls, router_client=None, **kwargs):
         if not router_client:
-            router_client = TPLinkRouter.get_client()
+            router_client = TPLinkRouter.get_client(**kwargs)
         return cls(router_client)
 
     def __init__(self, router_client):
