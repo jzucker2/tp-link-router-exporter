@@ -49,12 +49,19 @@ class TPLinkRouter(object):
             'router_password',
             self.get_default_router_password())
         self.router_password = router_password
-        i_m = (f'logging in at router_ip: {router_ip} '
+        i_m = (f'creating client for router_ip: {router_ip} '
                f'with router_password: {router_password}')
-        log.info(i_m)
-        self.router = TplinkRouter(
-            router_ip,
-            router_password)
+        log.debug(i_m)
+        self._router = None
+
+    @property
+    def router(self):
+        if self._router:
+            return self._router
+        self._router = TplinkRouter(
+            self.router_ip,
+            self.router_password)
+        return self._router
 
     def test_debug(self):
         log.info('test_debug')
@@ -70,18 +77,21 @@ class TPLinkRouter(object):
             # Get firmware info - returns Firmware
             firmware = self.router.get_firmware()
             log.info(f'router firmware: {firmware}')
-            firmware_dict = dataclasses.asdict(firmware)
-            log.info(f'firmware_dict: {firmware_dict}')
+            # firmware_dict = dataclasses.asdict(firmware)
+            # log.info(f'firmware_dict: {firmware_dict}')
 
             # Get status info - returns Status
             status = self.router.get_status()
             log.info(f'router status: {status}')
+            if status:
+                clients_total = status.wifi_clients_total
+                log.info(f'clients_total: {clients_total}')
             status_dict = dataclasses.asdict(status)
             log.info(f'status_dict: {status_dict}')
         except Exception as unexp:
             u_m = (f'self.router_ip: {self.router_ip} '
                    f'got exception unexp: {unexp}')
-            log.info(u_m)
+            log.error(u_m)
 
         finally:
             # always logout as TP-Link Web
