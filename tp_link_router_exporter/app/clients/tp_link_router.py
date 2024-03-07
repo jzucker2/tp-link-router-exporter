@@ -1,14 +1,9 @@
-import os
 from tplinkrouterc6u import TplinkRouter
 from flask import current_app as app
+from .env_vars import EnvVars
 
 
 log = app.logger
-
-
-ROUTER_IP = os.environ.get('TP_LINK_ROUTER_IP')
-ROUTER_USERNAME = os.environ.get('TP_LINK_ROUTER_USERNAME')
-ROUTER_PASSWORD = os.environ.get('TP_LINK_ROUTER_PASSWORD')
 
 
 # https://github.com/AlexandrErohin/TP-Link-Archer-C6U
@@ -20,20 +15,20 @@ class TPLinkRouterException(Exception):
 
 class TPLinkRouter(object):
     @classmethod
-    def get_client(cls):
-        return cls()
+    def get_client(cls, **kwargs):
+        return cls(**kwargs)
 
     @classmethod
     def get_default_router_ip(cls):
-        return ROUTER_IP
+        return EnvVars.get_default_router_ip()
 
     @classmethod
     def get_default_router_username(cls):
-        return ROUTER_USERNAME
+        return EnvVars.get_default_router_username()
 
     @classmethod
     def get_default_router_password(cls):
-        return ROUTER_PASSWORD
+        return EnvVars.get_default_router_password()
 
     def __init__(self, **kwargs):
         router_ip = kwargs.get(
@@ -67,13 +62,13 @@ class TPLinkRouter(object):
     def get_firmware(self):
         # Get firmware info - returns Firmware
         firmware = self.router.get_firmware()
-        log.info(f'router firmware: {firmware}')
+        log.debug(f'router firmware: {firmware}')
         return firmware
 
     def get_status(self):
         # Get status info - returns Status
         status = self.router.get_status()
-        log.info(f'router status: {status}')
+        log.debug(f'router status: {status}')
         return status
 
     def logout(self):
