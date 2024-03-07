@@ -2,6 +2,7 @@ Dockerfile
 .DS_Store
 .gitignore
 .dockerignore
+exporter_config.yaml
 
 tp_link_router_exporter/app/app.db
 tp_link_router_exporter/tests/
