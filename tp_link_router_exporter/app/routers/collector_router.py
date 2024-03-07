@@ -22,17 +22,23 @@ class CollectorRouter(Router):
     def collectors(self):
         if not self._collectors:
             collectors = self.create_collectors()
-            self._collectors = collectors
+            self._collectors = list(collectors)
         return self._collectors
 
     @classmethod
     def create_collectors(cls):
         collector = Collector.get_collector(
             router_ip=EnvVars.get_default_router_ip(),
-            router_password=EnvVars.get_default_router_password())
-        return [
+            router_password=EnvVars.get_default_router_password(),
+            router_name=EnvVars.get_default_router_name())
+        collector_2 = Collector.get_collector(
+            router_ip=EnvVars.get_secondary_router_ip(),
+            router_password=EnvVars.get_secondary_router_password(),
+            router_name=EnvVars.get_secondary_router_name())
+        return list([
             collector,
-        ]
+            collector_2,
+        ])
 
     @property
     def service(self):

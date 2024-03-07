@@ -6,6 +6,7 @@ from prometheus_flask_exporter import Counter, Summary, Gauge
 class Labels(Enum):
     DEVICE = 'device'
     SCRAPE_EVENT = 'scrape_event'
+    ROUTER_NAME = 'router_name'
 
     @classmethod
     def labels(cls):
@@ -14,8 +15,15 @@ class Labels(Enum):
         ])
 
     @classmethod
+    def basic_router_labels(cls):
+        return list([
+            cls.ROUTER_NAME.value,
+        ])
+
+    @classmethod
     def scrape_event_labels(cls):
         return list([
+            cls.ROUTER_NAME.value,
             cls.SCRAPE_EVENT.value,
         ])
 
@@ -63,28 +71,28 @@ class Metrics(object):
 
     ROUTER_WIFI_CLIENTS_TOTAL = Gauge(
         'tp_link_router_exporter_router_wifi_clients_total',
-        'Total number of Wi-Fi clients connected to this router'
-    )
+        'Total number of Wi-Fi clients connected to this router',
+        Labels.basic_router_labels())
 
     ROUTER_WIRED_CLIENTS_TOTAL = Gauge(
         'tp_link_router_exporter_router_wired_clients_total',
-        'Total number of wired clients connected to this router'
-    )
+        'Total number of wired clients connected to this router',
+        Labels.basic_router_labels())
 
     ROUTER_CLIENTS_TOTAL = Gauge(
         'tp_link_router_exporter_router_clients_total',
-        'Total number of total clients connected to this router'
-    )
+        'Total number of total clients connected to this router',
+        Labels.basic_router_labels())
 
     ROUTER_MEMORY_USAGE = Gauge(
         'tp_link_router_exporter_router_memory_usage',
-        'The memory usage of the router'
-    )
+        'The memory usage of the router',
+        Labels.basic_router_labels())
 
     ROUTER_CPU_USAGE = Gauge(
         'tp_link_router_exporter_router_cpu_usage',
-        'The cpu usage of the router'
-    )
+        'The cpu usage of the router',
+        Labels.basic_router_labels())
 
 
 # https://github.com/rycus86/prometheus_flask_exporter#app-factory-pattern

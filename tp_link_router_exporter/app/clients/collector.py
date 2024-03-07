@@ -1,4 +1,3 @@
-import dataclasses
 from flask import current_app as app
 from ..utils import global_get_now
 from ..common.scrape_events import ScrapeEvents
@@ -14,15 +13,25 @@ class CollectorException(Exception):
 
 
 class Collector(object):
+    DEFAULT_ROUTER_NAME = 'default'
+
+    @classmethod
+    def default_router_name(cls):
+        return cls.DEFAULT_ROUTER_NAME
+
     @classmethod
     def get_collector(cls, router_client=None, **kwargs):
         if not router_client:
             router_client = TPLinkRouter.get_client(**kwargs)
-        return cls(router_client)
+        router_name = kwargs.get('router_name')
+        if not router_name:
+            router_name = cls.default_router_name()
+        return cls(router_client, router_name)
 
-    def __init__(self, router_client):
+    def __init__(self, router_client, router_name):
         super().__init__()
         self.router_client = router_client
+        self.router_name = router_name
         self._last_power_value = None
 
     @classmethod
@@ -32,9 +41,9 @@ class Collector(object):
     def __repr__(self):
         return f'Collector => blah: {self._last_power_value}'
 
-    @classmethod
-    def _inc_scrape_event(cls, event):
+    def _inc_scrape_event(self, event):
         Metrics.ROUTER_SCRAPE_EVENT_COLLECTOR_COUNTER.labels(
+            router_name=self.router_name,
             scrape_event=event.value,
         ).inc()
 
@@ -64,6 +73,32 @@ class Collector(object):
         self._inc_scrape_event(event)
         return status
 
+    def _record_status_metrics(self, status):
+        if not status:
+            return
+        # clients_total = status.wifi_clients_total
+        # log.info(f'clients_total: {clients_total}')
+        Metrics.ROUTER_WIFI_CLIENTS_TOTAL.labels(
+            router_name=self.router_name,
+        ).set(status.wifi_clients_total)
+        Metrics.ROUTER_WIRED_CLIENTS_TOTAL.labels(
+            router_name=self.router_name,
+        ).set(status.wired_total)
+        Metrics.ROUTER_CLIENTS_TOTAL.labels(
+            router_name=self.router_name,
+        ).set(status.clients_total)
+        Metrics.ROUTER_MEMORY_USAGE.labels(
+            router_name=self.router_name,
+        ).set(status.mem_usage)
+        Metrics.ROUTER_CPU_USAGE.labels(
+            router_name=self.router_name,
+        ).set(status.cpu_usage)
+
+    def _record_firmware_metrics(self, firmware):
+        if not firmware:
+            return
+        log.debug(f'got firmware: {firmware}')
+
     def _get_router_metrics(self):
         log.info('_get_router_metrics')
         self._inc_scrape_event(ScrapeEvents.ATTEMPT_GET_ROUTER_METRICS)
@@ -79,27 +114,12 @@ class Collector(object):
             # Get firmware info - returns Firmware
             firmware = self._get_firmware()
             log.info(f'router firmware: {firmware}')
-            # firmware_dict = dataclasses.asdict(firmware)
-            # log.info(f'firmware_dict: {firmware_dict}')
+            self._record_firmware_metrics(firmware)
 
             # Get status info - returns Status
             status = self._get_status()
             log.info(f'router status: {status}')
-            if status:
-                clients_total = status.wifi_clients_total
-                log.info(f'clients_total: {clients_total}')
-                Metrics.ROUTER_WIFI_CLIENTS_TOTAL.set(
-                    clients_total)
-                Metrics.ROUTER_WIRED_CLIENTS_TOTAL.set(
-                    status.wired_total)
-                Metrics.ROUTER_CLIENTS_TOTAL.set(
-                    status.clients_total)
-                Metrics.ROUTER_MEMORY_USAGE.set(
-                    status.mem_usage)
-                Metrics.ROUTER_CPU_USAGE.set(
-                    status.cpu_usage)
-            status_dict = dataclasses.asdict(status)
-            log.info(f'status_dict: {status_dict}')
+            self._record_status_metrics(status)
         except Exception as unexp:
             u_m = (f'self.router_ip: {self.router_ip} '
                    f'got exception unexp: {unexp}')
