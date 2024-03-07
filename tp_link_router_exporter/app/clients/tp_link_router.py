@@ -1,6 +1,7 @@
 import os
+import dataclasses
 from flask import current_app as app
-from tplinkrouterc6u import TplinkRouterProvider
+from tplinkrouterc6u import TplinkRouter
 
 
 log = app.logger
@@ -51,7 +52,7 @@ class TPLinkRouter(object):
         i_m = (f'logging in at router_ip: {router_ip} '
                f'with router_password: {router_password}')
         log.info(i_m)
-        self.router = TplinkRouterProvider.get_client(
+        self.router = TplinkRouter(
             router_ip,
             router_password)
 
@@ -69,10 +70,14 @@ class TPLinkRouter(object):
             # Get firmware info - returns Firmware
             firmware = self.router.get_firmware()
             log.info(f'router firmware: {firmware}')
+            firmware_dict = dataclasses.asdict(firmware)
+            log.info(f'firmware_dict: {firmware_dict}')
 
             # Get status info - returns Status
             status = self.router.get_status()
             log.info(f'router status: {status}')
+            status_dict = dataclasses.asdict(status)
+            log.info(f'status_dict: {status_dict}')
         except Exception as unexp:
             u_m = (f'self.router_ip: {self.router_ip} '
                    f'got exception unexp: {unexp}')
