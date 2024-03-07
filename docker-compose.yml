@@ -1,0 +1,28 @@
+version: '3.7'
+
+services:
+
+  tp_link_router_exporter:
+    container_name: tp_link_router_exporter
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://host.docker.internal:3133/api/v1/health || exit 1" ]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
+    ports:
+      - "3133:3133"
+      - "9233:9233"
+    environment:
+      # like `http://10.0.1.1` or `http://tplinkwifi.net`
+      - TP_LINK_ROUTER_IP=${TP_LINK_ROUTER_IP}
+      # hopefully something secret!
+      - TP_LINK_ROUTER_PASSWORD=${TP_LINK_ROUTER_PASSWORD}
+    stdin_open: true
+    tty: true
