@@ -20,7 +20,7 @@ def create_app(config=config.base_config):
         # Check to possibly include our Tasks
         from .tasks.tp_link_router_pinger import TPLinkRouterPinger
         if TPLinkRouterPinger.should_schedule_router_metrics_updates():
-            from .tasks import tp_link_router  # noqa: F401
+            from .tasks import tp_link_router_tasks  # noqa: F401
         else:
             s_m = 'Skipping scheduling of TP-Link Router metrics updates'
             app.logger.warning(s_m)
