@@ -17,8 +17,8 @@ services:
       retries: 5
       start_period: 80s
     ports:
-      - "2003:2003"
-      - "1805:1805"
+      - "3133:3133"
+      - "9233:9233"
     environment:
       # like `10.0.1.1` or `tplinkwifi.net`
       - TP_LINK_ROUTER_IP=${TP_LINK_ROUTER_IP}
