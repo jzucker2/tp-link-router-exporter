@@ -76,8 +76,6 @@ class Collector(object):
     def _record_status_metrics(self, status):
         if not status:
             return
-        # clients_total = status.wifi_clients_total
-        # log.info(f'clients_total: {clients_total}')
         Metrics.ROUTER_WIFI_CLIENTS_TOTAL.labels(
             router_name=self.router_name,
         ).set(status.wifi_clients_total)
@@ -100,25 +98,25 @@ class Collector(object):
         log.debug(f'got firmware: {firmware}')
 
     def _get_router_metrics(self):
-        log.info('_get_router_metrics')
+        log.debug('_get_router_metrics')
         self._inc_scrape_event(ScrapeEvents.ATTEMPT_GET_ROUTER_METRICS)
         try:
             # authorizing
             a_m = (f'attempting to authorize at '
                    f'self.router_ip: {self.router_ip}')
-            log.info(a_m)
+            log.debug(a_m)
             self._authorize()
             sa_m = (f'self.router_ip: {self.router_ip} '
                     f'succeeded at auth')
-            log.info(sa_m)
+            log.debug(sa_m)
             # Get firmware info - returns Firmware
             firmware = self._get_firmware()
-            log.info(f'router firmware: {firmware}')
+            log.debug(f'router firmware: {firmware}')
             self._record_firmware_metrics(firmware)
 
             # Get status info - returns Status
             status = self._get_status()
-            log.info(f'router status: {status}')
+            log.debug(f'router status: {status}')
             self._record_status_metrics(status)
         except Exception as unexp:
             u_m = (f'self.router_ip: {self.router_ip} '
@@ -130,7 +128,7 @@ class Collector(object):
             # always logout as TP-Link Web
             # Interface only supports upto 1 user logged
             l_m = f'now logging out from self.router_ip: {self.router_ip}'
-            log.info(l_m)
+            log.debug(l_m)
             self._logout()
 
     def get_router_metrics(self):

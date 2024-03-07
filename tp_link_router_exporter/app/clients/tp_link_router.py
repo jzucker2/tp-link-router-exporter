@@ -62,13 +62,13 @@ class TPLinkRouter(object):
     def get_firmware(self):
         # Get firmware info - returns Firmware
         firmware = self.router.get_firmware()
-        log.info(f'router firmware: {firmware}')
+        log.debug(f'router firmware: {firmware}')
         return firmware
 
     def get_status(self):
         # Get status info - returns Status
         status = self.router.get_status()
-        log.info(f'router status: {status}')
+        log.debug(f'router status: {status}')
         return status
 
     def logout(self):

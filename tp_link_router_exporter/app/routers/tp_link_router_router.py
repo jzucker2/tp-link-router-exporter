@@ -27,5 +27,5 @@ class TPLinkRouterRouter(Router):
             log.debug(p_m)
             final_response = self.base_response('test_router')
             result = self.router_client.get_firmware()
-            log.info(f'result: {result}')
+            log.debug(f'result: {result}')
             return final_response

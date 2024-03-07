@@ -65,5 +65,5 @@ class CollectorRouter(Router):
             for collector in self.collectors:
                 result = collector.update_router_metrics()
                 r_m = f'self.collector: {self.collector} got result: {result}'
-                log.info(r_m)
+                log.debug(r_m)
             return final_response
