@@ -1,5 +1,7 @@
+import os
 import yaml
 from flask import current_app as app
+from ..common.config_keys import ConfigKeys
 
 
 log = app.logger
@@ -10,11 +12,14 @@ class ConfigParserException(Exception):
 
 
 class ConfigParser(object):
-    DEFAULT_CONFIG_FILE_PATH = 'exporter_config.yaml'
+    DEFAULT_CONFIG_FILE_NAME = 'exporter_config.yaml'
+    DEFAULT_CONFIG_FILE_PATH = '/etc/tp_link_router_exporter'
 
     @classmethod
     def get_config_file_path(cls):
-        return cls.DEFAULT_CONFIG_FILE_PATH
+        return os.path.join(
+            cls.DEFAULT_CONFIG_FILE_PATH,
+            cls.DEFAULT_CONFIG_FILE_NAME)
 
     @classmethod
     def get_config_file(cls, config_file_path=None):
@@ -28,3 +33,7 @@ class ConfigParser(object):
     def import_config(cls, config_file_path=None):
         config = cls.get_config_file(config_file_path=config_file_path)
         return config
+
+    @classmethod
+    def get_routers(cls, config):
+        return config[ConfigKeys.ROUTERS.key_name]

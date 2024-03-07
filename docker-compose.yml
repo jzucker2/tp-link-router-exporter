@@ -17,7 +17,7 @@ services:
       retries: 5
       start_period: 80s
     volumes:
-      - ./exporter_config.yaml:/etc/tp_link_exporter/exporter_config.yaml
+      - ./exporter_config.yaml:/etc/tp_link_router_exporter/exporter_config.yaml
     ports:
       - "3133:3133"
       - "9233:9233"

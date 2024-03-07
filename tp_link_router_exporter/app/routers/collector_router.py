@@ -1,5 +1,7 @@
 from flask import current_app as app
-from ..clients.env_vars import EnvVars
+from ..clients.config_parser import ConfigParser
+# from ..clients.env_vars import EnvVars
+from ..common.config_keys import ConfigKeys
 from ..clients.collector import Collector
 from ..metrics import Metrics
 from .router import Router, RouterException
@@ -15,30 +17,57 @@ class CollectorRouterException(RouterException):
 class CollectorRouter(Router):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        config = ConfigParser.import_config()
+        log.info(f'config: {config}')
+        self.config = config
         self.collector = Collector.get_collector()
         self._collectors = None
 
     @property
     def collectors(self):
         if not self._collectors:
-            collectors = self.create_collectors()
+            collectors = self.create_collectors(self.config)
             self._collectors = list(collectors)
         return self._collectors
 
     @classmethod
-    def create_collectors(cls):
-        collector = Collector.get_collector(
-            router_ip=EnvVars.get_default_router_ip(),
-            router_password=EnvVars.get_default_router_password(),
-            router_name=EnvVars.get_default_router_name())
-        collector_2 = Collector.get_collector(
-            router_ip=EnvVars.get_secondary_router_ip(),
-            router_password=EnvVars.get_secondary_router_password(),
-            router_name=EnvVars.get_secondary_router_name())
-        return list([
-            collector,
-            collector_2,
-        ])
+    def _create_collector(cls, ip, name, password):
+        return Collector.get_collector(
+            router_ip=ip,
+            router_password=password,
+            router_name=name)
+
+    @classmethod
+    def _create_collector_from_config(cls, router_config):
+        router_name = router_config[ConfigKeys.ROUTER_NAME.key_name]
+        router_ip = router_config[ConfigKeys.ROUTER_IP.key_name]
+        router_password = router_config[ConfigKeys.ROUTER_PASSWORD.key_name]
+        collector = cls._create_collector(
+            router_ip,
+            router_name,
+            router_password)
+        return collector
+
+    @classmethod
+    def create_collectors(cls, config):
+        routers = ConfigParser.get_routers(config)
+        collectors = []
+        for router_config in routers:
+            collector = cls._create_collector_from_config(router_config)
+            collectors.append(collector)
+        return list(collectors)
+        # collector = Collector.get_collector(
+        #     router_ip=EnvVars.get_default_router_ip(),
+        #     router_password=EnvVars.get_default_router_password(),
+        #     router_name=EnvVars.get_default_router_name())
+        # collector_2 = Collector.get_collector(
+        #     router_ip=EnvVars.get_secondary_router_ip(),
+        #     router_password=EnvVars.get_secondary_router_password(),
+        #     router_name=EnvVars.get_secondary_router_name())
+        # return list([
+        #     collector,
+        #     collector_2,
+        # ])
 
     @property
     def service(self):
