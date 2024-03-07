@@ -26,7 +26,6 @@ class TPLinkRouterRouter(Router):
             p_m = 'test for router'
             log.debug(p_m)
             final_response = self.base_response('test_router')
-            # self.rpi_bad_power.check_under_voltage()
-            result = self.router_client.test_debug()
+            result = self.router_client.get_firmware()
             log.info(f'result: {result}')
             return final_response

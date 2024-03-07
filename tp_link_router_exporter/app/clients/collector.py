@@ -1,6 +1,7 @@
 import dataclasses
 from flask import current_app as app
 from ..utils import global_get_now
+from ..common.scrape_events import ScrapeEvents
 from ..metrics import Metrics
 from .tp_link_router import TPLinkRouter
 
@@ -43,18 +44,29 @@ class Collector(object):
 
     def _authorize(self):
         self.router_client.authorize()
+        event = ScrapeEvents.AUTHORIZE
+        self._inc_scrape_event(event)
 
     def _logout(self):
         self.router_client.logout()
+        event = ScrapeEvents.LOGOUT
+        self._inc_scrape_event(event)
 
     def _get_firmware(self):
-        return self.router_client.get_firmware()
+        firmware = self.router_client.get_firmware()
+        event = ScrapeEvents.GET_FIRMWARE
+        self._inc_scrape_event(event)
+        return firmware
 
     def _get_status(self):
-        return self.router_client.get_status()
+        status = self.router_client.get_status()
+        event = ScrapeEvents.GET_STATUS
+        self._inc_scrape_event(event)
+        return status
 
-    def test_debug_router(self):
-        log.info('test_debug')
+    def _get_router_metrics(self):
+        log.info('_get_router_metrics')
+        self._inc_scrape_event(ScrapeEvents.ATTEMPT_GET_ROUTER_METRICS)
         try:
             # authorizing
             a_m = (f'attempting to authorize at '
@@ -92,6 +104,7 @@ class Collector(object):
             u_m = (f'self.router_ip: {self.router_ip} '
                    f'got exception unexp: {unexp}')
             log.error(u_m)
+            self._inc_scrape_event(ScrapeEvents.ERROR)
 
         finally:
             # always logout as TP-Link Web
@@ -101,8 +114,7 @@ class Collector(object):
             self._logout()
 
     def get_router_metrics(self):
-        # self._inc_voltage_event(event)
-        return self.test_debug_router()
+        return self._get_router_metrics()
 
     def update_router_metrics(self):
         return self.get_router_metrics()

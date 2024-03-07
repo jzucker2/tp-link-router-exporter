@@ -26,7 +26,7 @@ class DebugRouter(Router):
             p_m = 'handle debug route'
             log.debug(p_m)
             final_response = self.base_response('debug')
-            result = self.router_client.test_debug()
+            result = self.router_client.get_firmware()
             log.info(f'result: {result}')
             # if result:
             #     final_response['router'] = result
