@@ -63,6 +63,9 @@ class TPLinkRouter(object):
                    f'self.router_ip: {self.router_ip}')
             log.info(a_m)
             if self.router.authorize():
+                sa_m = (f'self.router_ip: {self.router_ip} '
+                        f'succeeded at auth')
+                log.info(sa_m)
                 # Get firmware info - returns Firmware
                 firmware = self.router.get_firmware()
                 log.info(f'router firmware: {firmware}')
@@ -70,6 +73,10 @@ class TPLinkRouter(object):
                 # Get status info - returns Status
                 status = self.router.get_status()
                 log.info(f'router status: {status}')
+        except Exception as unexp:
+            u_m = (f'self.router_ip: {self.router_ip} '
+                   f'got exception unexp: {unexp}')
+            log.info(u_m)
 
         finally:
             # always logout as TP-Link Web
