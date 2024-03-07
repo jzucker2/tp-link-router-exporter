@@ -5,19 +5,12 @@ from prometheus_flask_exporter import Counter, Summary, Gauge
 
 class Labels(Enum):
     DEVICE = 'device'
-    EVENT = 'event'
     SCRAPE_EVENT = 'scrape_event'
 
     @classmethod
     def labels(cls):
         return list([
             cls.DEVICE.value,
-        ])
-
-    @classmethod
-    def voltage_event_labels(cls):
-        return list([
-            cls.EVENT.value,
         ])
 
     @classmethod
