@@ -31,9 +31,9 @@ class Collector(object):
         return f'Collector => blah: {self._last_power_value}'
 
     @classmethod
-    def _inc_voltage_event(cls, event):
-        Metrics.UNDER_VOLTAGE_EVENT_COLLECTOR_COUNTER.labels(
-            event=event.value,
+    def _inc_scrape_event(cls, event):
+        Metrics.ROUTER_SCRAPE_EVENT_COLLECTOR_COUNTER.labels(
+            scrape_event=event.value,
         ).inc()
 
     def test_debug_router(self):

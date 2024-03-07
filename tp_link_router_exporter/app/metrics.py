@@ -6,6 +6,7 @@ from prometheus_flask_exporter import Counter, Summary, Gauge
 class Labels(Enum):
     DEVICE = 'device'
     EVENT = 'event'
+    SCRAPE_EVENT = 'scrape_event'
 
     @classmethod
     def labels(cls):
@@ -17,6 +18,12 @@ class Labels(Enum):
     def voltage_event_labels(cls):
         return list([
             cls.EVENT.value,
+        ])
+
+    @classmethod
+    def scrape_event_labels(cls):
+        return list([
+            cls.SCRAPE_EVENT.value,
         ])
 
 
@@ -53,26 +60,17 @@ class Metrics(object):
         'tp_link_router_exporter_collector_metrics_update_route_exceptions',
         'Exceptions while attempting collector metrics update route request')
 
-    SYSTEM_SUPPORTED_VALUE = Gauge(
-        'tp_link_router_exporter_system_supported_value',
-        'If this sets to 0 than system cannot report other voltage values'
+    ROUTER_SCRAPE_EVENT_COLLECTOR_COUNTER = Counter(
+        'tp_link_router_exporter_scrape_event_collector_count',
+        'The count of events related to scraping a router by collector',
+        Labels.scrape_event_labels()
     )
 
-    UNDER_VOLTAGE_VALUE = Gauge(
-        'tp_link_router_exporter_under_voltage_value',
-        'The under voltage value is 1 if detecting bad power'
-    )
+    # router specific stats
 
-    UNDER_VOLTAGE_EVENT_CLIENT_COUNTER = Counter(
-        'tp_link_router_exporter_under_voltage_event_client_count',
-        'The count of voltage related events fetched by client',
-        Labels.voltage_event_labels()
-    )
-
-    UNDER_VOLTAGE_EVENT_COLLECTOR_COUNTER = Counter(
-        'tp_link_router_exporter_under_voltage_event_collector_count',
-        'The count of voltage related events processed by collector',
-        Labels.voltage_event_labels()
+    ROUTER_WIFI_CLIENTS_TOTAL = Gauge(
+        'tp_link_router_exporter_router_wifi_clients_total',
+        'Total number of Wi-Fi clients connected to this router'
     )
 
 
