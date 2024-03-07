@@ -29,13 +29,13 @@ class Metrics(object):
         'tp_link_router_exporter_debug_route_exceptions',
         'Exceptions while attempting to handle debug route request')
 
-    UNDER_VOLTAGE_CHECK_TIME = Summary(
-        'tp_link_router_exporter_under_voltage_check_time',
-        'Time spent to check if pi is under voltage')
+    TP_LINK_ROUTER_TEST_TIME = Summary(
+        'tp_link_router_exporter_router_test_time',
+        'Time spent to get quick info from TP-Link router')
 
-    UNDER_VOLTAGE_CHECK_EXCEPTIONS = Counter(
-        'tp_link_router_exporter_under_voltage_check_exceptions',
-        'Exceptions while attempting to check if pi is under voltage')
+    TP_LINK_ROUTER_TEST_EXCEPTIONS = Counter(
+        'tp_link_router_exporter_router_test_exceptions',
+        'Exceptions while attempting to get quick info from TP-Link router')
 
     SIMPLE_COLLECTOR_ROUTE_TIME = Summary(
         'tp_link_router_exporter_simple_collector_route_time',

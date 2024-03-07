@@ -7,24 +7,26 @@ from .router import Router, RouterException
 log = app.logger
 
 
-class UnderVoltageRouterException(RouterException):
+class TPLinkRouterRouterException(RouterException):
     pass
 
 
-class UnderVoltageRouter(Router):
+class TPLinkRouterRouter(Router):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.router_client = TPLinkRouter.get_client()
 
     @property
     def service(self):
-        return 'check_under_voltage'
+        return 'tp_link_router'
 
-    @Metrics.UNDER_VOLTAGE_CHECK_TIME.time()
-    def check_under_voltage_response(self):
-        with Metrics.UNDER_VOLTAGE_CHECK_EXCEPTIONS.count_exceptions():
-            p_m = 'check for under_voltage'
+    @Metrics.TP_LINK_ROUTER_TEST_TIME.time()
+    def test_router_response(self):
+        with Metrics.TP_LINK_ROUTER_TEST_EXCEPTIONS.count_exceptions():
+            p_m = 'test for router'
             log.debug(p_m)
-            final_response = self.base_response('check_under_voltage')
+            final_response = self.base_response('test_router')
             # self.rpi_bad_power.check_under_voltage()
+            result = self.router_client.test_debug()
+            log.info(f'result: {result}')
             return final_response

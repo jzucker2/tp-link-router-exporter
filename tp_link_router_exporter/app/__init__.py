@@ -35,7 +35,7 @@ def create_app(config=config.base_config):
         # Include our Routes
         from .routes import utils  # noqa: F401
         from .routes import debug  # noqa: F401
-        from .routes import under_voltage  # noqa: F401
+        from .routes import tp_link_router  # noqa: F401
         from .routes import collector  # noqa: F401
 
         # after routes, register metrics

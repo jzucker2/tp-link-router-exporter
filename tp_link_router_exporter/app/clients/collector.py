@@ -39,19 +39,9 @@ class Collector(object):
     def test_debug_router(self):
         return self.router_client.test_debug()
 
-    def check_under_voltage(self):
-        pass
-        # event = self.rpi_power_client.check_under_voltage()
+    def get_router_metrics(self):
         # self._inc_voltage_event(event)
-        # if event == VoltageEvents.SYSTEM_NOT_SUPPORTED:
-        #     Metrics.SYSTEM_SUPPORTED_VALUE.set(0)
-        #     # TODO: would be cool to do something else here
-        #     return None
-        # else:
-        #     Metrics.SYSTEM_SUPPORTED_VALUE.set(1)
-        #     final_value = event.under_voltage_value
-        #     Metrics.UNDER_VOLTAGE_VALUE.set(final_value)
-        #     return final_value
+        return self.test_debug_router()
 
-    def update_rpi_power_metrics(self):
-        return self.check_under_voltage()
+    def update_router_metrics(self):
+        return self.get_router_metrics()

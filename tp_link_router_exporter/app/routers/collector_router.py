@@ -37,7 +37,7 @@ class CollectorRouter(Router):
             p_m = 'handle collector metrics update route'
             log.debug(p_m)
             final_response = self.base_response('metrics_update')
-            result = self.collector.update_rpi_power_metrics()
+            result = self.collector.update_router_metrics()
             r_m = f'self.collector: {self.collector} got result: {result}'
             log.debug(r_m)
             return final_response

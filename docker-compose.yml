@@ -16,15 +16,12 @@ services:
       timeout: 60s
       retries: 5
       start_period: 80s
-#    privileged: true
     ports:
       - "3133:3133"
       - "9233:9233"
     environment:
-      # like `10.0.1.1` or `tplinkwifi.net`
+      # like `http://10.0.1.1` or `http://tplinkwifi.net`
       - TP_LINK_ROUTER_IP=${TP_LINK_ROUTER_IP}
-      # like `admin` or `jordan`
-      - TP_LINK_ROUTER_USERNAME=${TP_LINK_ROUTER_USERNAME}
       # hopefully something secret!
       - TP_LINK_ROUTER_PASSWORD=${TP_LINK_ROUTER_PASSWORD}
     stdin_open: true

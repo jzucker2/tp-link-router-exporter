@@ -15,8 +15,8 @@ log = app.logger
     max_instances=1,
     start_date="2000-01-01 12:19:00",
 )
-def perform_rpi_power_metrics_update():
-    """RPi Power metrics update
+def perform_router_metrics_update():
+    """Router metrics update
 
     Added when app starts.
     """
