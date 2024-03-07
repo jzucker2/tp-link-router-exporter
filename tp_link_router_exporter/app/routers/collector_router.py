@@ -1,6 +1,6 @@
 from flask import current_app as app
 from ..clients.config_parser import ConfigParser
-# from ..clients.env_vars import EnvVars
+from ..clients.env_vars import EnvVars
 from ..common.config_keys import ConfigKeys
 from ..clients.collector import Collector
 from ..metrics import Metrics
@@ -38,6 +38,13 @@ class CollectorRouter(Router):
             router_name=name)
 
     @classmethod
+    def _create_env_var_collector(cls):
+        router_name = EnvVars.get_default_router_name()
+        router_ip = EnvVars.get_default_router_ip()
+        router_password = EnvVars.get_default_router_password()
+        return cls._create_collector(router_ip, router_name, router_password)
+
+    @classmethod
     def _create_collector_from_config(cls, router_config):
         router_name = router_config[ConfigKeys.ROUTER_NAME.key_name]
         router_ip = router_config[ConfigKeys.ROUTER_IP.key_name]
@@ -49,25 +56,30 @@ class CollectorRouter(Router):
         return collector
 
     @classmethod
+    def _has_router_config_env_vars(cls):
+        return EnvVars.has_router_config_env_vars()
+
+    @classmethod
+    def should_use_config_file(cls):
+        if cls._has_router_config_env_vars():
+            return False
+        return True
+
+    @classmethod
     def create_collectors(cls, config):
-        routers = ConfigParser.get_routers(config)
         collectors = []
-        for router_config in routers:
-            collector = cls._create_collector_from_config(router_config)
+        if cls.should_use_config_file():
+            log.debug('Using yml config file for router configs')
+            routers = ConfigParser.get_routers(config)
+            for router_config in routers:
+                collector = cls._create_collector_from_config(router_config)
+                collectors.append(collector)
+            return list(collectors)
+        else:
+            log.debug('Using env vars for router configs')
+            collector = cls._create_env_var_collector()
             collectors.append(collector)
         return list(collectors)
-        # collector = Collector.get_collector(
-        #     router_ip=EnvVars.get_default_router_ip(),
-        #     router_password=EnvVars.get_default_router_password(),
-        #     router_name=EnvVars.get_default_router_name())
-        # collector_2 = Collector.get_collector(
-        #     router_ip=EnvVars.get_secondary_router_ip(),
-        #     router_password=EnvVars.get_secondary_router_password(),
-        #     router_name=EnvVars.get_secondary_router_name())
-        # return list([
-        #     collector,
-        #     collector_2,
-        # ])
 
     @property
     def service(self):
@@ -79,7 +91,7 @@ class CollectorRouter(Router):
             p_m = 'handle simple collector route'
             log.debug(p_m)
             final_response = self.base_response('simple')
-            collector = Collector.get_collector()
+            collector = self._create_env_var_collector()
             result = collector.get_router_metrics()
             r_m = f'self.collector: {self.collector} got result: {result}'
             log.debug(r_m)
