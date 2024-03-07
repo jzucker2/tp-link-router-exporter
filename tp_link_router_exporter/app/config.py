@@ -36,7 +36,8 @@ class base_config(object):
     SECRET_KEY = os.environ.get('SECRET_KEY', 'secrets')
 
     # WARNING: messing with the below breaks routing
-    # SERVER_NAME = os.getenv("TP_LINK_ROUTER_EXPORTER_HOST", default="0.0.0.0")
+    # SERVER_NAME = os.getenv("TP_LINK_ROUTER_EXPORTER_HOST",
+    #                         default="0.0.0.0")
     TP_LINK_ROUTER_EXPORTER_HOST = ENV_TP_LINK_ROUTER_EXPORTER_HOST
     TP_LINK_ROUTER_EXPORTER_PORT = ENV_TP_LINK_ROUTER_EXPORTER_PORT
 
