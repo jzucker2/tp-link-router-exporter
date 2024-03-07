@@ -87,7 +87,16 @@ class TPLinkRouter(object):
             if status:
                 clients_total = status.wifi_clients_total
                 log.info(f'clients_total: {clients_total}')
-                Metrics.ROUTER_WIFI_CLIENTS_TOTAL.set(clients_total)
+                Metrics.ROUTER_WIFI_CLIENTS_TOTAL.set(
+                    clients_total)
+                Metrics.ROUTER_WIRED_CLIENTS_TOTAL.set(
+                    status.wired_total)
+                Metrics.ROUTER_CLIENTS_TOTAL.set(
+                    status.clients_total)
+                Metrics.ROUTER_MEMORY_USAGE.set(
+                    status.mem_usage)
+                Metrics.ROUTER_CPU_USAGE.set(
+                    status.cpu_usage)
             status_dict = dataclasses.asdict(status)
             log.info(f'status_dict: {status_dict}')
         except Exception as unexp:

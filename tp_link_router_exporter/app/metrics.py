@@ -73,6 +73,26 @@ class Metrics(object):
         'Total number of Wi-Fi clients connected to this router'
     )
 
+    ROUTER_WIRED_CLIENTS_TOTAL = Gauge(
+        'tp_link_router_exporter_router_wired_clients_total',
+        'Total number of wired clients connected to this router'
+    )
+
+    ROUTER_CLIENTS_TOTAL = Gauge(
+        'tp_link_router_exporter_router_clients_total',
+        'Total number of total clients connected to this router'
+    )
+
+    ROUTER_MEMORY_USAGE = Gauge(
+        'tp_link_router_exporter_router_memory_usage',
+        'The memory usage of the router'
+    )
+
+    ROUTER_CPU_USAGE = Gauge(
+        'tp_link_router_exporter_router_cpu_usage',
+        'The cpu usage of the router'
+    )
+
 
 # https://github.com/rycus86/prometheus_flask_exporter#app-factory-pattern
 # https://github.com/rycus86/prometheus_flask_exporter/blob/master/examples/gunicorn-app-factory/app_setup.py
