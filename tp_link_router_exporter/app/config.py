@@ -26,7 +26,7 @@ ENV_TP_LINK_ROUTER_EXPORTER_HOST = os.getenv(
     default="0.0.0.0")
 ENV_TP_LINK_ROUTER_EXPORTER_PORT = int(os.getenv(
     "TP_LINK_ROUTER_EXPORTER_PORT",
-    default=2003))
+    default=5566))
 
 
 class base_config(object):
@@ -36,7 +36,7 @@ class base_config(object):
     SECRET_KEY = os.environ.get('SECRET_KEY', 'secrets')
 
     # WARNING: messing with the below breaks routing
-    # SERVER_NAME = os.getenv("TP_LINK_ROUTER_EXPORTER_HOST", default="0.0.0.0")  # noqa: E501
+    # SERVER_NAME = os.getenv("TP_LINK_ROUTER_EXPORTER_HOST", default="0.0.0.0")
     TP_LINK_ROUTER_EXPORTER_HOST = ENV_TP_LINK_ROUTER_EXPORTER_HOST
     TP_LINK_ROUTER_EXPORTER_PORT = ENV_TP_LINK_ROUTER_EXPORTER_PORT
 
@@ -78,22 +78,6 @@ class base_config(object):
     APP_DIR = os.path.dirname(__file__)
     MIGRATION_DIRECTORY = os.path.join(APP_DIR, "migrations")
 
-    DEFAULT_QNAP_HOST_IP = "10.0.1.1"
-    QNAP_HOST_IP = os.getenv("QNAP_HOST_IP",
-                             default=DEFAULT_QNAP_HOST_IP)
-
-    DEFAULT_QNAP_PORT = 8080
-    QNAP_PORT = os.getenv("QNAP_PORT",
-                          default=DEFAULT_QNAP_PORT)
-
-    DEFAULT_QNAP_USERNAME = "admin"
-    QNAP_USERNAME = os.getenv("QNAP_USERNAME",
-                              default=DEFAULT_QNAP_USERNAME)
-
-    DEFAULT_QNAP_PASSWORD = "password"
-    QNAP_PASSWORD = os.getenv("QNAP_PASSWORD",
-                              default=DEFAULT_QNAP_PASSWORD)
-
     # Flask-APScheduler
     SCHEDULER_API_ENABLED = True
 
@@ -103,11 +87,11 @@ class base_config(object):
         "METRICS_INTERVAL_SECONDS",
         default=DEFAULT_METRICS_INTERVAL_SECONDS))
 
-    # to turn off, supply `0` but by default will regularly ping QNAP NAS
-    DEFAULT_SHOULD_SCHEDULE_QNAP_METRICS_UPDATES = '1'
-    SHOULD_SCHEDULE_QNAP_METRICS_UPDATES = os.environ.get(
-        'SHOULD_SCHEDULE_QNAP_METRICS_UPDATES',
-        DEFAULT_SHOULD_SCHEDULE_QNAP_METRICS_UPDATES)
+    # to turn off, supply `0` but by default will regularly ping RPi power
+    DEFAULT_SHOULD_SCHEDULE_RPI_POWER_METRICS_UPDATES = '1'
+    SHOULD_SCHEDULE_RPI_POWER_METRICS_UPDATES = os.environ.get(
+        'SHOULD_SCHEDULE_RPI_POWER_METRICS_UPDATES',
+        DEFAULT_SHOULD_SCHEDULE_RPI_POWER_METRICS_UPDATES)
 
 
 class dev_config(base_config):

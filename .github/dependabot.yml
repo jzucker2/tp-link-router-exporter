@@ -40,6 +40,5 @@ updates:
       - dependencies
     allow:
       # allow updates for specific clients
-      - dependency-name: "qnapstats"
+      - dependency-name: "rpi-bad-power"
       - dependency-name: "Flask-APScheduler"
-      - dependency-name: "tenacity"

@@ -1,16 +1,12 @@
 from enum import Enum
 from uuid import uuid4
 from datetime import datetime
-from asgiref.sync import sync_to_async
 import logging
 from .version import version
 
 
 class NormalizeIntegerException(Exception):
     pass
-
-
-convert_to_async = sync_to_async
 
 
 def set_up_logging(level=logging.DEBUG):
@@ -76,13 +72,6 @@ def zero_day(dt, zero_hour=0):
 
 def max_day(dt, zero_hour=23):
     return dt.replace(hour=zero_hour, minute=59, second=59, microsecond=0)
-
-
-# TODO: this should be the first unit test
-def garmin_activity_from_strava(strava_external_id):
-    original = strava_external_id
-    cleaned_up = original.replace('garmin_push_', '')
-    return cleaned_up
 
 
 def normalize_name(name_or_other, return_other=False):

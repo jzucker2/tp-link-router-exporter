@@ -1,20 +1,26 @@
 import unittest
+from enum import Enum
 from tp_link_router_exporter.app import utils
 
 
+class TestEnum(Enum):
+    FOO = 'foo'
+    BAR = 'bar'
+
+
 class TestUtils(unittest.TestCase):
-    def test_garmin_id_from_strava(self):
-        prefix = 'garmin_push_'
-        strava_external_id = 'garmin_push_12345'
-        garmin_id = '12345'
-        self.assertIn(prefix, strava_external_id)
-        self.assertIn(garmin_id, strava_external_id)
-        found_id = utils.garmin_activity_from_strava(strava_external_id)
-        self.assertIsNotNone(found_id)
-        self.assertIsInstance(found_id, str)
-        self.assertEqual(found_id, garmin_id)
-        reconstruct = f'{prefix}{found_id}'
-        self.assertEqual(strava_external_id, reconstruct)
+    def test_normalize_name_works_for_enum(self):
+        test_enum = TestEnum.FOO
+        expected_name = 'FOO'
+        expected_value = 'foo'
+        self.assertIsInstance(test_enum, Enum)
+        self.assertEqual(test_enum.name, expected_name)
+        self.assertEqual(test_enum.value, expected_value)
+        result = utils.normalize_name(test_enum)
+        self.assertIsNotNone(result)
+        self.assertNotEqual(test_enum, result)
+        self.assertEqual(test_enum.value, result)
+        self.assertEqual(expected_value, result)
 
 
 if __name__ == '__main__':

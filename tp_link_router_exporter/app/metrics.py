@@ -5,23 +5,7 @@ from prometheus_flask_exporter import Counter, Summary, Gauge
 
 class Labels(Enum):
     DEVICE = 'device'
-    NETWORK_ID = 'network_id'
-    NETWORK_NAME = 'network_name'
-    IS_DEFAULT = 'is_default'
-    IP = 'ip'
-    MAC = 'mac'
-    MASK = 'mask'
-    USAGE = 'usage'
-    VOLUME_ID = 'volume_id'
-    VOLUME_ID_NUMBER = 'volume_id_number'
-    VOLUME_LABEL = 'volume_label'
-    SHARENAME = 'sharename'
-    MODEL = 'model'
-    DISK_ID = 'disk_id'
-    DISK_TYPE = 'disk_type'
-    DRIVE_NUMBER = 'drive_number'
-    SERIAL = 'serial'
-    UNITS = 'units'
+    EVENT = 'event'
 
     @classmethod
     def labels(cls):
@@ -30,58 +14,9 @@ class Labels(Enum):
         ])
 
     @classmethod
-    def bandwidth_labels(cls):
+    def voltage_event_labels(cls):
         return list([
-            cls.NETWORK_ID.value,
-            cls.NETWORK_NAME.value,
-            cls.IS_DEFAULT.value,
-        ])
-
-    @classmethod
-    def nics_labels(cls):
-        return list([
-            cls.NETWORK_ID.value,
-            cls.IP.value,
-            cls.MAC.value,
-            cls.USAGE.value,
-        ])
-
-    @classmethod
-    def volume_labels(cls):
-        return list([
-            cls.VOLUME_ID.value,
-            cls.VOLUME_ID_NUMBER.value,
-            cls.VOLUME_LABEL.value,
-        ])
-
-    @classmethod
-    def volume_folder_labels(cls):
-        return list([
-            cls.VOLUME_ID.value,
-            cls.VOLUME_ID_NUMBER.value,
-            cls.VOLUME_LABEL.value,
-            cls.SHARENAME.value,
-        ])
-
-    @classmethod
-    def smart_disk_labels(cls):
-        return list([
-            cls.DISK_ID.value,
-            cls.DRIVE_NUMBER.value,
-            cls.MODEL.value,
-            cls.SERIAL.value,
-            cls.DISK_TYPE.value,
-        ])
-
-    @classmethod
-    def smart_disk_capacity_labels(cls):
-        return list([
-            cls.DISK_ID.value,
-            cls.DRIVE_NUMBER.value,
-            cls.MODEL.value,
-            cls.SERIAL.value,
-            cls.DISK_TYPE.value,
-            cls.UNITS.value,
+            cls.EVENT.value,
         ])
 
 
@@ -94,131 +29,51 @@ class Metrics(object):
         'tp_link_router_exporter_debug_route_exceptions',
         'Exceptions while attempting to handle debug route request')
 
-    SIMPLE_EXPORTER_ROUTE_TIME = Summary(
-        'tp_link_router_exporter_simple_exporter_route_time',
-        'Time spent to handle simple exporter route request')
+    UNDER_VOLTAGE_CHECK_TIME = Summary(
+        'tp_link_router_exporter_under_voltage_check_time',
+        'Time spent to check if pi is under voltage')
+
+    UNDER_VOLTAGE_CHECK_EXCEPTIONS = Counter(
+        'tp_link_router_exporter_under_voltage_check_exceptions',
+        'Exceptions while attempting to check if pi is under voltage')
+
+    SIMPLE_COLLECTOR_ROUTE_TIME = Summary(
+        'tp_link_router_exporter_simple_collector_route_time',
+        'Time spent to handle simple collector route request')
 
     SIMPLE_EXPORTER_ROUTE_EXCEPTIONS = Counter(
-        'tp_link_router_exporter_simple_exporter_route_exceptions',
-        'Exceptions while attempting to handle simple exporter route request')
+        'tp_link_router_exporter_simple_collector_route_exceptions',
+        'Exceptions while attempting to handle simple collector route request')
 
-    EXPORTER_METRICS_UPDATE_ROUTE_TIME = Summary(
-        'tp_link_router_exporter_exporter_metrics_update_route_time',
-        'Time spent to handle exporter metrics update route request')
+    COLLECTOR_METRICS_UPDATE_ROUTE_TIME = Summary(
+        'tp_link_router_exporter_collector_metrics_update_route_time',
+        'Time spent to handle collector metrics update route request')
 
-    EXPORTER_METRICS_UPDATE_ROUTE_EXCEPTIONS = Counter(
-        'tp_link_router_exporter_exporter_metrics_update_route_exceptions',
-        'Exceptions while attempting exporter metrics update route request')
+    COLLECTOR_METRICS_UPDATE_ROUTE_EXCEPTIONS = Counter(
+        'tp_link_router_exporter_collector_metrics_update_route_exceptions',
+        'Exceptions while attempting collector metrics update route request')
 
-    SYSTEM_STATS_CPU_TEMP_C_VALUE = Gauge(
-        'tp_link_router_exporter_system_stats_cpu_temp_c',
-        'Current temp of CPU in Celsius')
+    SYSTEM_SUPPORTED_VALUE = Gauge(
+        'tp_link_router_exporter_system_supported_value',
+        'If this sets to 0 than system cannot report other voltage values'
+    )
 
-    SYSTEM_STATS_CPU_TEMP_F_VALUE = Gauge(
-        'tp_link_router_exporter_system_stats_cpu_temp_f',
-        'Current temp of CPU in Fahrenheit')
+    UNDER_VOLTAGE_VALUE = Gauge(
+        'tp_link_router_exporter_under_voltage_value',
+        'The under voltage value is 1 if detecting bad power'
+    )
 
-    SYSTEM_STATS_SYSTEM_TEMP_C_VALUE = Gauge(
-        'tp_link_router_exporter_system_stats_system_temp_c',
-        'Current temp of entire QNAP system in Celsius')
+    UNDER_VOLTAGE_EVENT_CLIENT_COUNTER = Counter(
+        'tp_link_router_exporter_under_voltage_event_client_count',
+        'The count of voltage related events fetched by client',
+        Labels.voltage_event_labels()
+    )
 
-    SYSTEM_STATS_SYSTEM_TEMP_F_VALUE = Gauge(
-        'tp_link_router_exporter_system_stats_system_temp_f',
-        'Current temp of entire QNAP system in Fahrenheit')
-
-    SYSTEM_STATS_CPU_USAGE_PERCENT_VALUE = Gauge(
-        'tp_link_router_exporter_system_stats_cpu_usage_percent',
-        'Current system CPU usage percentage')
-
-    SYSTEM_STATS_MEMORY_FREE_VALUE = Gauge(
-        'tp_link_router_exporter_system_stats_memory_free',
-        'Current free system memory of the QNAP')
-
-    SYSTEM_STATS_MEMORY_TOTAL_VALUE = Gauge(
-        'tp_link_router_exporter_system_stats_memory_total',
-        'The total system memory of the QNAP')
-
-    SYSTEM_STATS_MEMORY_USED_VALUE = Gauge(
-        'tp_link_router_exporter_system_stats_memory_used',
-        'The used system memory of the QNAP')
-
-    SYSTEM_STATS_MEMORY_USAGE_PERCENT = Gauge(
-        'tp_link_router_exporter_system_stats_memory_usage_percent',
-        'The % of system memory currently being used of the QNAP')
-
-    SYSTEM_STATS_UPTIME_SECONDS = Gauge(
-        'tp_link_router_exporter_system_stats_uptime_seconds',
-        'The total system uptime of the QNAP in seconds')
-
-    SYSTEM_STATS_NICS_RX_PACKETS = Gauge(
-        'tp_link_router_exporter_system_stats_nics_rx_packets',
-        'The QNAP system stats nics rx_packets',
-        Labels.nics_labels())
-
-    SYSTEM_STATS_NICS_TX_PACKETS = Gauge(
-        'tp_link_router_exporter_system_stats_nics_tx_packets',
-        'The QNAP system stats nics tx_packets',
-        Labels.nics_labels())
-
-    SYSTEM_STATS_NICS_ERR_PACKETS = Gauge(
-        'tp_link_router_exporter_system_stats_nics_err_packets',
-        'The QNAP system stats nics err_packets',
-        Labels.nics_labels())
-
-    SYSTEM_STATS_NICS_MAX_SPEED = Gauge(
-        'tp_link_router_exporter_system_stats_nics_max_speed',
-        'The QNAP system stats nics max speed',
-        Labels.nics_labels())
-
-    BANDWIDTH_INTERFACE_RX = Gauge(
-        'tp_link_router_exporter_bandwidth_interface_rx',
-        'The QNAP bandwidth network interface rx value',
-        Labels.bandwidth_labels())
-
-    BANDWIDTH_INTERFACE_TX = Gauge(
-        'tp_link_router_exporter_bandwidth_interface_tx',
-        'The QNAP bandwidth network interface tx value',
-        Labels.bandwidth_labels())
-
-    VOLUME_FREE_SIZE = Gauge(
-        'tp_link_router_exporter_volume_free_size',
-        'The QNAP volume free size (bytes?)',
-        Labels.volume_labels())
-
-    VOLUME_TOTAL_SIZE = Gauge(
-        'tp_link_router_exporter_volume_total_size',
-        'The QNAP volume total size (bytes?)',
-        Labels.volume_labels())
-
-    VOLUME_USED_SIZE = Gauge(
-        'tp_link_router_exporter_volume_used_size',
-        'The QNAP volume used size (bytes?)',
-        Labels.volume_labels())
-
-    VOLUME_USAGE_PERCENT = Gauge(
-        'tp_link_router_exporter_volume_usage_percent',
-        'The QNAP volume usage %',
-        Labels.volume_labels())
-
-    VOLUME_FOLDER_USED_SIZE = Gauge(
-        'tp_link_router_exporter_volume_folder_used_size',
-        'The QNAP volume folder used size (bytes?)',
-        Labels.volume_folder_labels())
-
-    SMART_DISK_HEALTH_TEMP_C_VALUE = Gauge(
-        'tp_link_router_exporter_smart_disk_health_temp_c',
-        'Current temp of disk in Celsius',
-        Labels.smart_disk_labels())
-
-    SMART_DISK_HEALTH_TEMP_F_VALUE = Gauge(
-        'tp_link_router_exporter_smart_disk_health_temp_f',
-        'Current temp of disk in Fahrenheit',
-        Labels.smart_disk_labels())
-
-    SMART_DISK_HEALTH_CAPACITY_VALUE = Gauge(
-        'tp_link_router_exporter_smart_disk_health_capacity',
-        'Current capacity of disk in dynamically labelled units',
-        Labels.smart_disk_capacity_labels())
+    UNDER_VOLTAGE_EVENT_COLLECTOR_COUNTER = Counter(
+        'tp_link_router_exporter_under_voltage_event_collector_count',
+        'The count of voltage related events processed by collector',
+        Labels.voltage_event_labels()
+    )
 
 
 # https://github.com/rycus86/prometheus_flask_exporter#app-factory-pattern
