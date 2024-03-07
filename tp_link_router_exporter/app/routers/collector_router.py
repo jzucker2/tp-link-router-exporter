@@ -18,7 +18,7 @@ class CollectorRouter(Router):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         config = ConfigParser.import_config()
-        log.info(f'config: {config}')
+        log.debug(f'config: {config}')
         self.config = config
         self.collector = Collector.get_collector()
         self._collectors = None
