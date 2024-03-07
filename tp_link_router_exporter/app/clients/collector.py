@@ -123,6 +123,11 @@ class Collector(object):
                    f'got exception unexp: {unexp}')
             log.error(u_m)
             self._inc_scrape_event(ScrapeEvents.ERROR)
+        else:
+            u_m = (f'self.router_ip: {self.router_ip} '
+                   f'scraped successfully!')
+            log.debug(u_m)
+            self._inc_scrape_event(ScrapeEvents.SUCCESS)
 
         finally:
             # always logout as TP-Link Web
