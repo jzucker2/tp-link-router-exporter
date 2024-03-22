@@ -79,7 +79,7 @@ class Metrics(object):
 
     ROUTER_CONNECTED_CLIENTS_TOTAL = Gauge(
         'tp_link_router_exporter_router_connected_clients_total',
-        'The number of connected clients (by type) connected to this router',
+        'The number of clients (by type) connected to this router',
         Labels.client_connections_labels())
 
     ROUTER_MEMORY_USAGE = Gauge(
