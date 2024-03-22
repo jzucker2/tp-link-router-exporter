@@ -7,6 +7,7 @@ class Labels(Enum):
     DEVICE = 'device'
     SCRAPE_EVENT = 'scrape_event'
     ROUTER_NAME = 'router_name'
+    CONNECTION_TYPE = 'connection_type'
 
     @classmethod
     def labels(cls):
@@ -18,6 +19,13 @@ class Labels(Enum):
     def basic_router_labels(cls):
         return list([
             cls.ROUTER_NAME.value,
+        ])
+
+    @classmethod
+    def client_connections_labels(cls):
+        return list([
+            cls.ROUTER_NAME.value,
+            cls.CONNECTION_TYPE.value,
         ])
 
     @classmethod
@@ -69,20 +77,20 @@ class Metrics(object):
 
     # router specific stats
 
-    ROUTER_WIFI_CLIENTS_TOTAL = Gauge(
-        'tp_link_router_exporter_router_wifi_clients_total',
-        'Total number of Wi-Fi clients connected to this router',
-        Labels.basic_router_labels())
+    ROUTER_CONNECTED_CLIENTS_TOTAL = Gauge(
+        'tp_link_router_exporter_router_connected_clients_total',
+        'The number of connected clients (by type) connected to this router',
+        Labels.client_connections_labels())
 
-    ROUTER_WIRED_CLIENTS_TOTAL = Gauge(
-        'tp_link_router_exporter_router_wired_clients_total',
-        'Total number of wired clients connected to this router',
-        Labels.basic_router_labels())
-
-    ROUTER_CLIENTS_TOTAL = Gauge(
-        'tp_link_router_exporter_router_clients_total',
-        'Total number of total clients connected to this router',
-        Labels.basic_router_labels())
+    # ROUTER_WIRED_CLIENTS_TOTAL = Gauge(
+    #     'tp_link_router_exporter_router_wired_clients_total',
+    #     'Total number of wired clients connected to this router',
+    #     Labels.client_connections_labels())
+    #
+    # ROUTER_CLIENTS_TOTAL = Gauge(
+    #     'tp_link_router_exporter_router_clients_total',
+    #     'Total number of total clients connected to this router',
+    #     Labels.basic_router_labels())
 
     ROUTER_MEMORY_USAGE = Gauge(
         'tp_link_router_exporter_router_memory_usage',
