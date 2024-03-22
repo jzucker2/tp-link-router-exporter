@@ -1,5 +1,6 @@
 from flask import current_app as app
 from ..utils import global_get_now
+from ..common.router_firmware_properties import RouterFirmwareProperties
 from ..common.client_connection_types import ClientConnectionTypes
 from ..common.scrape_events import ScrapeEvents
 from ..metrics import Metrics
@@ -121,10 +122,34 @@ class Collector(object):
             router_name=self.router_name,
         ).set(status.cpu_usage)
 
+    def _record_devices_metrics(self, status):
+        if not status:
+            return
+        devices = list(status.devices)
+        if not devices:
+            return
+        d_m = f'devices from status: {status} got devices: {devices}'
+        log.info(d_m)
+
     def _record_firmware_metrics(self, firmware):
         if not firmware:
             return
         log.debug(f'got firmware: {firmware}')
+        Metrics.ROUTER_FIRMWARE_PROPERTY.labels(
+            router_name=self.router_name,
+            firmware_property=RouterFirmwareProperties.HARDWARE_VERSION,
+            firmware_value=firmware.hardware_version,
+        ).set(1)
+        Metrics.ROUTER_FIRMWARE_PROPERTY.labels(
+            router_name=self.router_name,
+            firmware_property=RouterFirmwareProperties.MODEL,
+            firmware_value=firmware.model,
+        ).set(1)
+        Metrics.ROUTER_FIRMWARE_PROPERTY.labels(
+            router_name=self.router_name,
+            firmware_property=RouterFirmwareProperties.FIRMWARE_VERSION,
+            firmware_value=firmware.firmware_version,
+        ).set(1)
 
     def _record_ipv4_status_metrics(self, ipv4_status):
         if not ipv4_status:
@@ -158,21 +183,22 @@ class Collector(object):
         status = self._get_status()
         log.info(f'router status: {status}')
         self._record_status_metrics(status)
+        self._record_devices_metrics(status)
 
-        # Get IPv4 status
-        ipv4_status = self._get_ipv4_status()
-        log.info(f'router ipv4_status: {ipv4_status}')
-        self._record_ipv4_status_metrics(ipv4_status)
-
-        # Get IPv4 reservations
-        ipv4_reservations = self._get_ipv4_reservations()
-        log.info(f'router ipv4_reservations: {ipv4_reservations}')
-        self._record_ipv4_reservations(ipv4_reservations)
-
-        # Get IPv4 dhcp leases
-        ipv4_leases = self._get_ipv4_dhcp_leases()
-        log.info(f'router ipv4_leases: {ipv4_leases}')
-        self._record_ipv4_dhcp_leases(ipv4_leases)
+        # # Get IPv4 status
+        # ipv4_status = self._get_ipv4_status()
+        # log.info(f'router ipv4_status: {ipv4_status}')
+        # self._record_ipv4_status_metrics(ipv4_status)
+        #
+        # # Get IPv4 reservations
+        # ipv4_reservations = self._get_ipv4_reservations()
+        # log.info(f'router ipv4_reservations: {ipv4_reservations}')
+        # self._record_ipv4_reservations(ipv4_reservations)
+        #
+        # # Get IPv4 dhcp leases
+        # ipv4_leases = self._get_ipv4_dhcp_leases()
+        # log.info(f'router ipv4_leases: {ipv4_leases}')
+        # self._record_ipv4_dhcp_leases(ipv4_leases)
 
     # handles flow, including log in/out
     def _execute_get_router_metrics(self):

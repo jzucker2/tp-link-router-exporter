@@ -8,6 +8,8 @@ class Labels(Enum):
     SCRAPE_EVENT = 'scrape_event'
     ROUTER_NAME = 'router_name'
     CONNECTION_TYPE = 'connection_type'
+    FIRMWARE_PROPERTY = 'firmware_property'
+    FIRMWARE_VALUE = 'firmware_value'
 
     @classmethod
     def labels(cls):
@@ -19,6 +21,14 @@ class Labels(Enum):
     def basic_router_labels(cls):
         return list([
             cls.ROUTER_NAME.value,
+        ])
+
+    @classmethod
+    def firmware_router_labels(cls):
+        return list([
+            cls.ROUTER_NAME.value,
+            cls.FIRMWARE_PROPERTY.value,
+            cls.FIRMWARE_VALUE.value,
         ])
 
     @classmethod
@@ -91,6 +101,13 @@ class Metrics(object):
         'tp_link_router_exporter_router_cpu_usage',
         'The cpu usage of the router',
         Labels.basic_router_labels())
+
+    # info
+
+    ROUTER_FIRMWARE_PROPERTY = Gauge(
+        'tp_link_router_exporter_router_firmware_property',
+        'The value of a firmware property on the router',
+        Labels.firmware_router_labels())
 
 
 # https://github.com/rycus86/prometheus_flask_exporter#app-factory-pattern
