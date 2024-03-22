@@ -71,5 +71,20 @@ class TPLinkRouter(object):
         log.debug(f'router status: {status}')
         return status
 
+    def get_ipv4_status(self):
+        ipv4_status = self.router.get_ipv4_status()
+        log.debug(f'router ipv4_status: {ipv4_status}')
+        return ipv4_status
+
+    def get_ipv4_reservations(self):
+        ipv4_reservations = self.router.get_ipv4_reservations()
+        log.debug(f'router ipv4_reservations: {ipv4_reservations}')
+        return ipv4_reservations
+
+    def get_ipv4_dhcp_leases(self):
+        ipv4_dhcp_leases = self.router.get_ipv4_dhcp_leases()
+        log.debug(f'router ipv4_dhcp_leases: {ipv4_dhcp_leases}')
+        return ipv4_dhcp_leases
+
     def logout(self):
         self.router.logout()

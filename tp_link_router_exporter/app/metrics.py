@@ -8,6 +8,13 @@ class Labels(Enum):
     SCRAPE_EVENT = 'scrape_event'
     ROUTER_NAME = 'router_name'
     CONNECTION_TYPE = 'connection_type'
+    DEVICE_TYPE = 'device_type'
+    HOSTNAME = 'hostname'
+    IP_ADDRESS = 'ip_address'
+    MAC_ADDRESS = 'mac_address'
+    PACKET_ACTION = 'packet_action'
+    FIRMWARE_PROPERTY = 'firmware_property'
+    FIRMWARE_VALUE = 'firmware_value'
 
     @classmethod
     def labels(cls):
@@ -22,10 +29,29 @@ class Labels(Enum):
         ])
 
     @classmethod
+    def firmware_router_labels(cls):
+        return list([
+            cls.ROUTER_NAME.value,
+            cls.FIRMWARE_PROPERTY.value,
+            cls.FIRMWARE_VALUE.value,
+        ])
+
+    @classmethod
     def client_connections_labels(cls):
         return list([
             cls.ROUTER_NAME.value,
             cls.CONNECTION_TYPE.value,
+        ])
+
+    @classmethod
+    def device_packets_labels(cls):
+        return list([
+            cls.ROUTER_NAME.value,
+            cls.DEVICE_TYPE.value,
+            cls.HOSTNAME.value,
+            cls.IP_ADDRESS.value,
+            cls.MAC_ADDRESS.value,
+            cls.PACKET_ACTION.value,
         ])
 
     @classmethod
@@ -91,6 +117,25 @@ class Metrics(object):
         'tp_link_router_exporter_router_cpu_usage',
         'The cpu usage of the router',
         Labels.basic_router_labels())
+
+    ROUTER_WAN_IPV4_UPTIME = Gauge(
+        'tp_link_router_exporter_router_wan_ipv4_uptime',
+        'The uptime (s) of the router IPv4 WAN',
+        Labels.basic_router_labels())
+
+    # router info
+
+    ROUTER_FIRMWARE_PROPERTY = Gauge(
+        'tp_link_router_exporter_router_firmware_property',
+        'The value of a firmware property on the router',
+        Labels.firmware_router_labels())
+
+    # device tracking
+
+    ROUTER_DEVICE_PACKETS_TOTAL = Gauge(
+        'tp_link_router_exporter_device_packets_total',
+        'The number of packets sent or received by device on router',
+        Labels.device_packets_labels())
 
 
 # https://github.com/rycus86/prometheus_flask_exporter#app-factory-pattern
