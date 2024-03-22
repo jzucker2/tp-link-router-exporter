@@ -182,7 +182,7 @@ class Collector(object):
         elif property == RouterFirmwareProperties.MODEL:
             return firmware.model
         elif property == RouterFirmwareProperties.FIRMWARE_VERSION:
-            return  firmware.firmware_version
+            return firmware.firmware_version
         e_m = f'invalid firmware property: {property}'
         log.error(e_m)
         raise InvalidRouterFirmwarePropertyCollectorException(e_m)
