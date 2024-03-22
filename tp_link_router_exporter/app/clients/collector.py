@@ -171,7 +171,7 @@ class Collector(object):
         if not devices:
             return
         d_m = f'devices metrics to parse devices: {devices}'
-        log.info(d_m)
+        log.debug(d_m)
         for device in devices:
             for packet_action in PacketActions.metrics_actions_list():
                 self._record_device_packet_metrics(device, packet_action)
@@ -224,12 +224,12 @@ class Collector(object):
         log.debug(a_m)
         # Get firmware info - returns Firmware
         firmware = self._get_firmware()
-        log.info(f'router firmware: {firmware}')
+        log.debug(f'router firmware: {firmware}')
         self._record_firmware_metrics(firmware)
 
         # Get status info - returns Status
         status = self._get_status()
-        log.info(f'router status: {status}')
+        log.debug(f'router status: {status}')
         self._record_status_metrics(status)
         devices = self._get_devices(status)
         self._record_devices_metrics(devices)
