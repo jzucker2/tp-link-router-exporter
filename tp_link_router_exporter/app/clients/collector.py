@@ -106,12 +106,13 @@ class Collector(object):
         self._inc_scrape_event(event)
         return leases
 
-    def _get_devices(self):
-        # FIXME: not working yet
-        status = self.router_client.get_ipv4_status()
+    def _get_devices(self, status):
+        if not status:
+            return
+        devices = list(status.devices)
         event = ScrapeEvents.GET_DEVICES
         self._inc_scrape_event(event)
-        return status
+        return devices
 
     def _record_status_metrics(self, status):
         if not status:
@@ -166,13 +167,10 @@ class Collector(object):
             packet_action=packet_action.label_string,
         ).set(packets)
 
-    def _record_devices_metrics(self, status):
-        if not status:
-            return
-        devices = list(status.devices)
+    def _record_devices_metrics(self, devices):
         if not devices:
             return
-        d_m = f'devices from status: {status} got devices: {devices}'
+        d_m = f'devices metrics to parse devices: {devices}'
         log.info(d_m)
         for device in devices:
             for packet_action in PacketActions.metrics_actions_list():
@@ -233,7 +231,8 @@ class Collector(object):
         status = self._get_status()
         log.info(f'router status: {status}')
         self._record_status_metrics(status)
-        self._record_devices_metrics(status)
+        devices = self._get_devices(status)
+        self._record_devices_metrics(devices)
 
         # # Get IPv4 status
         # ipv4_status = self._get_ipv4_status()
