@@ -74,6 +74,31 @@ class Collector(object):
         self._inc_scrape_event(event)
         return status
 
+    def _get_ipv4_status(self):
+        status = self.router_client.get_ipv4_status()
+        event = ScrapeEvents.GET_IPV4_STATUS
+        self._inc_scrape_event(event)
+        return status
+
+    def _get_ipv4_reservations(self):
+        res = self.router_client.get_ipv4_reservations()
+        event = ScrapeEvents.GET_IPV4_RESERVATIONS
+        self._inc_scrape_event(event)
+        return res
+
+    def _get_ipv4_dhcp_leases(self):
+        leases = self.router_client.get_ipv4_dhcp_leases()
+        event = ScrapeEvents.GET_IPV4_DHCP_LEASES
+        self._inc_scrape_event(event)
+        return leases
+
+    def _get_devices(self):
+        # FIXME: not working yet
+        status = self.router_client.get_ipv4_status()
+        event = ScrapeEvents.GET_DEVICES
+        self._inc_scrape_event(event)
+        return status
+
     def _record_status_metrics(self, status):
         if not status:
             return
@@ -101,7 +126,56 @@ class Collector(object):
             return
         log.debug(f'got firmware: {firmware}')
 
-    def _get_router_metrics(self):
+    def _record_ipv4_status_metrics(self, ipv4_status):
+        if not ipv4_status:
+            return
+        log.debug(f'got ipv4_status: {ipv4_status}')
+
+    def _record_ipv4_reservations(self, reservations):
+        if not reservations:
+            return
+        log.debug(f'got ipv4 reservations: {reservations}')
+
+    def _record_ipv4_dhcp_leases(self, leases):
+        if not leases:
+            return
+        log.debug(f'got ipv4 dhcp leases: {leases}')
+
+    # actual part where we decide what metrics to scrape
+    def _get_and_record_router_metrics(self):
+        log.debug('_get_router_metrics')
+        self._inc_scrape_event(ScrapeEvents.ATTEMPT_GET_ROUTER_METRICS)
+        # authorizing
+        a_m = (f'attempting to actually get metrics at '
+               f'self.router_ip: {self.router_ip}')
+        log.debug(a_m)
+        # Get firmware info - returns Firmware
+        firmware = self._get_firmware()
+        log.info(f'router firmware: {firmware}')
+        self._record_firmware_metrics(firmware)
+
+        # Get status info - returns Status
+        status = self._get_status()
+        log.info(f'router status: {status}')
+        self._record_status_metrics(status)
+
+        # Get IPv4 status
+        ipv4_status = self._get_ipv4_status()
+        log.info(f'router ipv4_status: {ipv4_status}')
+        self._record_ipv4_status_metrics(ipv4_status)
+
+        # Get IPv4 reservations
+        ipv4_reservations = self._get_ipv4_reservations()
+        log.info(f'router ipv4_reservations: {ipv4_reservations}')
+        self._record_ipv4_reservations(ipv4_reservations)
+
+        # Get IPv4 dhcp leases
+        ipv4_leases = self._get_ipv4_dhcp_leases()
+        log.info(f'router ipv4_leases: {ipv4_leases}')
+        self._record_ipv4_dhcp_leases(ipv4_leases)
+
+    # handles flow, including log in/out
+    def _execute_get_router_metrics(self):
         log.debug('_get_router_metrics')
         self._inc_scrape_event(ScrapeEvents.ATTEMPT_GET_ROUTER_METRICS)
         try:
@@ -113,15 +187,7 @@ class Collector(object):
             sa_m = (f'self.router_ip: {self.router_ip} '
                     f'succeeded at auth')
             log.debug(sa_m)
-            # Get firmware info - returns Firmware
-            firmware = self._get_firmware()
-            log.debug(f'router firmware: {firmware}')
-            self._record_firmware_metrics(firmware)
-
-            # Get status info - returns Status
-            status = self._get_status()
-            log.debug(f'router status: {status}')
-            self._record_status_metrics(status)
+            self._get_and_record_router_metrics()
         except Exception as unexp:
             u_m = (f'self.router_ip: {self.router_ip} '
                    f'got exception unexp: {unexp}')
@@ -141,7 +207,7 @@ class Collector(object):
             self._logout()
 
     def get_router_metrics(self):
-        return self._get_router_metrics()
+        return self._execute_get_router_metrics()
 
     def update_router_metrics(self):
         return self.get_router_metrics()
