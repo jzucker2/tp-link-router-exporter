@@ -19,6 +19,10 @@ class InvalidPacketActionCollectorException(CollectorException):
     pass
 
 
+class InvalidRouterFirmwarePropertyCollectorException(CollectorException):
+    pass
+
+
 class Collector(object):
     DEFAULT_ROUTER_NAME = 'default'
 
@@ -174,25 +178,28 @@ class Collector(object):
             for packet_action in PacketActions.metrics_actions_list():
                 self._record_device_packet_metrics(device, packet_action)
 
+    def _get_firmware_property_value(self, firmware, property):
+        if property == RouterFirmwareProperties.HARDWARE_VERSION:
+            return firmware.hardware_version
+        elif property == RouterFirmwareProperties.MODEL:
+            return firmware.model
+        elif property == RouterFirmwareProperties.FIRMWARE_VERSION:
+            return  firmware.firmware_version
+        e_m = f'invalid firmware property: {property}'
+        log.error(e_m)
+        raise InvalidRouterFirmwarePropertyCollectorException(e_m)
+
     def _record_firmware_metrics(self, firmware):
         if not firmware:
             return
         log.debug(f'got firmware: {firmware}')
-        Metrics.ROUTER_FIRMWARE_PROPERTY.labels(
-            router_name=self.router_name,
-            firmware_property=RouterFirmwareProperties.HARDWARE_VERSION.label_string,  # noqa: E501
-            firmware_value=firmware.hardware_version,
-        ).set(1)
-        Metrics.ROUTER_FIRMWARE_PROPERTY.labels(
-            router_name=self.router_name,
-            firmware_property=RouterFirmwareProperties.MODEL.label_string,
-            firmware_value=firmware.model,
-        ).set(1)
-        Metrics.ROUTER_FIRMWARE_PROPERTY.labels(
-            router_name=self.router_name,
-            firmware_property=RouterFirmwareProperties.FIRMWARE_VERSION.label_string,  # noqa: E501
-            firmware_value=firmware.firmware_version,
-        ).set(1)
+        for property in RouterFirmwareProperties.metrics_properties_list():
+            prop_value = self._get_firmware_property_value(firmware, property)
+            Metrics.ROUTER_FIRMWARE_PROPERTY.labels(
+                router_name=self.router_name,
+                firmware_property=property.label_string,
+                firmware_value=prop_value,
+            ).set(1)
 
     def _record_ipv4_status_metrics(self, ipv4_status):
         if not ipv4_status:
