@@ -205,16 +205,19 @@ class Collector(object):
     def _record_ipv4_status_metrics(self, ipv4_status):
         if not ipv4_status:
             return
+        # FIXME: actually implement this!
         log.debug(f'got ipv4_status: {ipv4_status}')
 
     def _record_ipv4_reservations(self, reservations):
         if not reservations:
             return
+        # FIXME: actually implement this!
         log.debug(f'got ipv4 reservations: {reservations}')
 
     def _record_ipv4_dhcp_leases(self, leases):
         if not leases:
             return
+        # FIXME: actually implement this!
         log.debug(f'got ipv4 dhcp leases: {leases}')
 
     # actual part where we decide what metrics to scrape
@@ -239,17 +242,17 @@ class Collector(object):
 
         # # Get IPv4 status
         # ipv4_status = self._get_ipv4_status()
-        # log.info(f'router ipv4_status: {ipv4_status}')
+        # log.debug(f'router ipv4_status: {ipv4_status}')
         # self._record_ipv4_status_metrics(ipv4_status)
         #
         # # Get IPv4 reservations
         # ipv4_reservations = self._get_ipv4_reservations()
-        # log.info(f'router ipv4_reservations: {ipv4_reservations}')
+        # log.debug(f'router ipv4_reservations: {ipv4_reservations}')
         # self._record_ipv4_reservations(ipv4_reservations)
         #
         # # Get IPv4 dhcp leases
         # ipv4_leases = self._get_ipv4_dhcp_leases()
-        # log.info(f'router ipv4_leases: {ipv4_leases}')
+        # log.debug(f'router ipv4_leases: {ipv4_leases}')
         # self._record_ipv4_dhcp_leases(ipv4_leases)
 
     # handles flow, including log in/out
