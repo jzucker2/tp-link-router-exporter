@@ -1,5 +1,7 @@
 # tp-link-router-exporter
 
+Based around a really awesome client library [`tplinkrouterc6u`](https://github.com/AlexandrErohin/TP-Link-Archer-C6U)
+
 ## Instructions
 
 To run, first create a `.env` file in the same directory as this project, like so:

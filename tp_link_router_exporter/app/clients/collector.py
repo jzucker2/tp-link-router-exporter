@@ -1,5 +1,6 @@
 from flask import current_app as app
 from ..utils import global_get_now
+from ..common.client_connection_types import ClientConnectionTypes
 from ..common.scrape_events import ScrapeEvents
 from ..metrics import Metrics
 from .tp_link_router import TPLinkRouter
@@ -76,14 +77,17 @@ class Collector(object):
     def _record_status_metrics(self, status):
         if not status:
             return
-        Metrics.ROUTER_WIFI_CLIENTS_TOTAL.labels(
+        Metrics.ROUTER_CONNECTED_CLIENTS_TOTAL.labels(
             router_name=self.router_name,
+            connection_type=ClientConnectionTypes.WIFI.label_string,
         ).set(status.wifi_clients_total)
-        Metrics.ROUTER_WIRED_CLIENTS_TOTAL.labels(
+        Metrics.ROUTER_CONNECTED_CLIENTS_TOTAL.labels(
             router_name=self.router_name,
+            connection_type=ClientConnectionTypes.WIRED.label_string,
         ).set(status.wired_total)
-        Metrics.ROUTER_CLIENTS_TOTAL.labels(
+        Metrics.ROUTER_CONNECTED_CLIENTS_TOTAL.labels(
             router_name=self.router_name,
+            connection_type=ClientConnectionTypes.TOTAL.label_string,
         ).set(status.clients_total)
         Metrics.ROUTER_MEMORY_USAGE.labels(
             router_name=self.router_name,

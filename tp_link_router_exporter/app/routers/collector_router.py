@@ -17,16 +17,20 @@ class CollectorRouterException(RouterException):
 class CollectorRouter(Router):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        config = ConfigParser.import_config()
-        log.debug(f'config: {config}')
-        self.config = config
+        self._config = None
         self.collector = Collector.get_collector()
         self._collectors = None
 
     @property
+    def config(self):
+        if not self._config:
+            self._config = ConfigParser.import_config()
+        return self._config
+
+    @property
     def collectors(self):
         if not self._collectors:
-            collectors = self.create_collectors(self.config)
+            collectors = self._create_collectors()
             self._collectors = list(collectors)
         return self._collectors
 
@@ -65,19 +69,21 @@ class CollectorRouter(Router):
             return False
         return True
 
-    @classmethod
-    def create_collectors(cls, config):
+    def _get_all_config_routers(self):
+        config = self.config
+        return ConfigParser.get_routers(config)
+
+    def _create_collectors(self):
         collectors = []
-        if cls.should_use_config_file():
+        if self.should_use_config_file():
             log.debug('Using yml config file for router configs')
-            routers = ConfigParser.get_routers(config)
+            routers = self._get_all_config_routers()
             for router_config in routers:
-                collector = cls._create_collector_from_config(router_config)
+                collector = self._create_collector_from_config(router_config)
                 collectors.append(collector)
-            return list(collectors)
         else:
             log.debug('Using env vars for router configs')
-            collector = cls._create_env_var_collector()
+            collector = self._create_env_var_collector()
             collectors.append(collector)
         return list(collectors)
 

@@ -50,8 +50,6 @@ def register_extensions(app):
     # scheduler
     scheduler.init_app(app)
     scheduler.start()
-    # TODO: do we need the below??
-    # db.create_all()
 
 
 def register_metrics(app):
