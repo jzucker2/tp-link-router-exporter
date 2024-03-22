@@ -118,6 +118,11 @@ class Metrics(object):
         'The cpu usage of the router',
         Labels.basic_router_labels())
 
+    ROUTER_WAN_IPV4_UPTIME = Gauge(
+        'tp_link_router_exporter_router_wan_ipv4_uptime',
+        'The uptime (s) of the router IPv4 WAN',
+        Labels.basic_router_labels())
+
     # router info
 
     ROUTER_FIRMWARE_PROPERTY = Gauge(

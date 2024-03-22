@@ -131,10 +131,13 @@ class Collector(object):
         ).set(status.clients_total)
         Metrics.ROUTER_MEMORY_USAGE.labels(
             router_name=self.router_name,
-        ).set(status.mem_usage)
+        ).set(status.mem_usage or 0)
         Metrics.ROUTER_CPU_USAGE.labels(
             router_name=self.router_name,
-        ).set(status.cpu_usage)
+        ).set(status.cpu_usage or 0)
+        Metrics.ROUTER_WAN_IPV4_UPTIME.labels(
+            router_name=self.router_name,
+        ).set(status.wan_ipv4_uptime or 0)
 
     def _record_device_packet_metrics(self, device, packet_action):
         device_type = self.normalize_input(device.type)
