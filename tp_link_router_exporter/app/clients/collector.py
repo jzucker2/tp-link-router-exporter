@@ -1,8 +1,9 @@
 from flask import current_app as app
-from ..utils import global_get_now
+from ..utils import global_get_now, normalize_name
 from ..common.router_firmware_properties import RouterFirmwareProperties
 from ..common.client_connection_types import ClientConnectionTypes
 from ..common.scrape_events import ScrapeEvents
+from ..common.packet_actions import PacketActions
 from ..metrics import Metrics
 from .tp_link_router import TPLinkRouter
 
@@ -14,8 +15,16 @@ class CollectorException(Exception):
     pass
 
 
+class InvalidPacketActionCollectorException(CollectorException):
+    pass
+
+
 class Collector(object):
     DEFAULT_ROUTER_NAME = 'default'
+
+    @classmethod
+    def normalize_input(cls, input):
+        return normalize_name(input)
 
     @classmethod
     def default_router_name(cls):
@@ -46,7 +55,7 @@ class Collector(object):
     def _inc_scrape_event(self, event):
         Metrics.ROUTER_SCRAPE_EVENT_COLLECTOR_COUNTER.labels(
             router_name=self.router_name,
-            scrape_event=event.value,
+            scrape_event=event.label_string,
         ).inc()
 
     @property
@@ -122,6 +131,37 @@ class Collector(object):
             router_name=self.router_name,
         ).set(status.cpu_usage)
 
+    def _record_device_packet_metrics(self, device, packet_action):
+        device_type = self.normalize_input(device.type)
+        hostname = device.hostname
+        ipaddress = str(device.ipaddress)
+        macaddress = str(device.macaddress)
+        packets = 0
+        if packet_action == PacketActions.SENT:
+            packets = device.packets_sent
+        elif packet_action == PacketActions.RECEIVED:
+            packets = device.packets_received
+        else:
+            pe_m = f'Invalid PacketAction for packet_action: {packet_action}'
+            log.error(pe_m)
+            raise InvalidPacketActionCollectorException(pe_m)
+        d_m = (f'parsed device: {device} to get '
+               f'device_type: {device_type}, '
+               f'hostname: {hostname}, '
+               f'ipaddress: {ipaddress}, '
+               f'macaddress: {macaddress}, '
+               f'packet_action: {packet_action}, '
+               f'packets: {packets}')
+        log.debug(d_m)
+        Metrics.ROUTER_DEVICE_PACKETS_TOTAL.labels(
+            router_name=self.router_name,
+            device_type=device_type,
+            hostname=hostname,
+            ip_address=ipaddress,
+            mac_address=macaddress,
+            packet_action=packet_action.label_string,
+        ).set(packets)
+
     def _record_devices_metrics(self, status):
         if not status:
             return
@@ -130,6 +170,9 @@ class Collector(object):
             return
         d_m = f'devices from status: {status} got devices: {devices}'
         log.info(d_m)
+        for device in devices:
+            for packet_action in PacketActions.metrics_actions_list():
+                self._record_device_packet_metrics(device, packet_action)
 
     def _record_firmware_metrics(self, firmware):
         if not firmware:
@@ -137,17 +180,17 @@ class Collector(object):
         log.debug(f'got firmware: {firmware}')
         Metrics.ROUTER_FIRMWARE_PROPERTY.labels(
             router_name=self.router_name,
-            firmware_property=RouterFirmwareProperties.HARDWARE_VERSION,
+            firmware_property=RouterFirmwareProperties.HARDWARE_VERSION.label_string,  # noqa: E501
             firmware_value=firmware.hardware_version,
         ).set(1)
         Metrics.ROUTER_FIRMWARE_PROPERTY.labels(
             router_name=self.router_name,
-            firmware_property=RouterFirmwareProperties.MODEL,
+            firmware_property=RouterFirmwareProperties.MODEL.label_string,
             firmware_value=firmware.model,
         ).set(1)
         Metrics.ROUTER_FIRMWARE_PROPERTY.labels(
             router_name=self.router_name,
-            firmware_property=RouterFirmwareProperties.FIRMWARE_VERSION,
+            firmware_property=RouterFirmwareProperties.FIRMWARE_VERSION.label_string,  # noqa: E501
             firmware_value=firmware.firmware_version,
         ).set(1)
 

@@ -13,3 +13,7 @@ class ScrapeEvents(Enum):
     ATTEMPT_GET_ROUTER_METRICS = 'attempt_get_router_metrics'
     SUCCESS = 'success'
     ERROR = 'error'
+
+    @property
+    def label_string(self):
+        return self.value
