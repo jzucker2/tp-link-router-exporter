@@ -82,16 +82,6 @@ class Metrics(object):
         'The number of connected clients (by type) connected to this router',
         Labels.client_connections_labels())
 
-    # ROUTER_WIRED_CLIENTS_TOTAL = Gauge(
-    #     'tp_link_router_exporter_router_wired_clients_total',
-    #     'Total number of wired clients connected to this router',
-    #     Labels.client_connections_labels())
-    #
-    # ROUTER_CLIENTS_TOTAL = Gauge(
-    #     'tp_link_router_exporter_router_clients_total',
-    #     'Total number of total clients connected to this router',
-    #     Labels.basic_router_labels())
-
     ROUTER_MEMORY_USAGE = Gauge(
         'tp_link_router_exporter_router_memory_usage',
         'The memory usage of the router',
