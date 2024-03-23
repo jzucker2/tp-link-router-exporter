@@ -156,9 +156,9 @@ class Collector(object):
             router_name=self.router_name,
         ).set(status.cpu_usage or 0)
         # now WAN IPv4 uptime
-        Metrics.ROUTER_WAN_IPV4_UPTIME.labels(
-            router_name=self.router_name,
-        ).set(status.wan_ipv4_uptime or 0)
+        # Metrics.ROUTER_WAN_IPV4_UPTIME.labels(
+        #     router_name=self.router_name,
+        # ).set(status.wan_ipv4_uptime or 0)
 
     def _record_device_packet_metrics(self, device, packet_action):
         device_type = self.normalize_input(device.type)
