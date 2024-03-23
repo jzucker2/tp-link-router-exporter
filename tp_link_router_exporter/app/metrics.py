@@ -130,7 +130,7 @@ class Metrics(object):
     # router info
 
     ROUTER_FIRMWARE_INFO = Gauge(
-        'tp_link_router_exporter_router_firmware_property',
+        'tp_link_router_exporter_router_firmware_info',
         'The info dict of firmware on the router',
         Labels.firmware_router_labels())
 
