@@ -15,6 +15,9 @@ class Labels(Enum):
     PACKET_ACTION = 'packet_action'
     FIRMWARE_PROPERTY = 'firmware_property'
     FIRMWARE_VALUE = 'firmware_value'
+    HARDWARE_VERSION = 'hardware_version'
+    MODEL = 'model'
+    FIRMWARE_VERSION = 'firmware_version'
 
     @classmethod
     def labels(cls):
@@ -32,8 +35,9 @@ class Labels(Enum):
     def firmware_router_labels(cls):
         return list([
             cls.ROUTER_NAME.value,
-            cls.FIRMWARE_PROPERTY.value,
-            cls.FIRMWARE_VALUE.value,
+            cls.HARDWARE_VERSION.value,
+            cls.MODEL.value,
+            cls.FIRMWARE_VERSION.value,
         ])
 
     @classmethod
@@ -125,9 +129,9 @@ class Metrics(object):
 
     # router info
 
-    ROUTER_FIRMWARE_PROPERTY = Gauge(
+    ROUTER_FIRMWARE_INFO = Gauge(
         'tp_link_router_exporter_router_firmware_property',
-        'The value of a firmware property on the router',
+        'The info dict of firmware on the router',
         Labels.firmware_router_labels())
 
     # device tracking

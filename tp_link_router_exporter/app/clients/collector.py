@@ -215,13 +215,13 @@ class Collector(object):
         if not firmware:
             return
         log.debug(f'got firmware: {firmware}')
+        labels = {
+            'router_name': self.router_name,
+        }
         for property in RouterFirmwareProperties.metrics_properties_list():
             prop_value = self._get_firmware_property_value(firmware, property)
-            Metrics.ROUTER_FIRMWARE_PROPERTY.labels(
-                router_name=self.router_name,
-                firmware_property=property.label_string,
-                firmware_value=prop_value,
-            ).set(1)
+            labels[property.label_string] = prop_value
+        Metrics.ROUTER_FIRMWARE_INFO.labels(**labels).set(1)
 
     def _record_ipv4_status_metrics(self, ipv4_status):
         if not ipv4_status:
