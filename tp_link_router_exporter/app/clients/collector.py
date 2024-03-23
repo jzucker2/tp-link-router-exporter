@@ -160,36 +160,47 @@ class Collector(object):
         #     router_name=self.router_name,
         # ).set(status.wan_ipv4_uptime or 0)
 
-    def _record_device_packet_metrics(self, device, packet_action):
-        device_type = self.normalize_input(device.type)
-        hostname = device.hostname
-        ipaddress = str(device.ipaddress)
-        macaddress = str(device.macaddress)
-        packets = 0
+    @classmethod
+    def _get_packets_for_action(cls, device, packet_action):
         if packet_action == PacketActions.SENT:
-            packets = device.packets_sent
+            return device.packets_sent
         elif packet_action == PacketActions.RECEIVED:
-            packets = device.packets_received
+            return device.packets_received
         else:
             pe_m = f'Invalid PacketAction for packet_action: {packet_action}'
             log.error(pe_m)
             raise InvalidPacketActionCollectorException(pe_m)
-        d_m = (f'parsed device: {device} to get '
-               f'device_type: {device_type}, '
-               f'hostname: {hostname}, '
-               f'ipaddress: {ipaddress}, '
-               f'macaddress: {macaddress}, '
-               f'packet_action: {packet_action}, '
-               f'packets: {packets}')
-        log.debug(d_m)
-        Metrics.ROUTER_DEVICE_PACKETS_TOTAL.labels(
+
+    def _record_device_metrics(self, device):
+        device_type = self.normalize_input(device.type)
+        hostname = device.hostname
+        ipaddress = str(device.ipaddress)
+        macaddress = str(device.macaddress)
+        Metrics.ROUTER_DEVICE_CONNECTED_STATUS.labels(
             router_name=self.router_name,
             device_type=device_type,
             hostname=hostname,
             ip_address=ipaddress,
             mac_address=macaddress,
-            packet_action=packet_action.label_string,
-        ).set(packets)
+        ).set(1)
+        for packet_action in PacketActions.metrics_actions_list():
+            packets = self._get_packets_for_action(device, packet_action)
+            d_m = (f'parsed device: {device} to get '
+                   f'device_type: {device_type}, '
+                   f'hostname: {hostname}, '
+                   f'ipaddress: {ipaddress}, '
+                   f'macaddress: {macaddress}, '
+                   f'packet_action: {packet_action}, '
+                   f'packets: {packets}')
+            log.debug(d_m)
+            Metrics.ROUTER_DEVICE_PACKETS_TOTAL.labels(
+                router_name=self.router_name,
+                device_type=device_type,
+                hostname=hostname,
+                ip_address=ipaddress,
+                mac_address=macaddress,
+                packet_action=packet_action.label_string,
+            ).set(packets)
 
     def _record_devices_metrics(self, devices):
         if not devices:
@@ -197,8 +208,8 @@ class Collector(object):
         d_m = f'devices metrics to parse devices: {devices}'
         log.debug(d_m)
         for device in devices:
-            for packet_action in PacketActions.metrics_actions_list():
-                self._record_device_packet_metrics(device, packet_action)
+            log.debug(f'recording metrics for device: {device}')
+            self._record_device_metrics(device)
 
     def _get_firmware_property_value(self, firmware, property):
         if property == RouterFirmwareProperties.HARDWARE_VERSION:

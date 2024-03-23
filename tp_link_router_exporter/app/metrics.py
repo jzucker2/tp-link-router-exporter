@@ -48,15 +48,22 @@ class Labels(Enum):
         ])
 
     @classmethod
-    def device_packets_labels(cls):
+    def default_device_labels(cls):
         return list([
             cls.ROUTER_NAME.value,
             cls.DEVICE_TYPE.value,
             cls.HOSTNAME.value,
             cls.IP_ADDRESS.value,
             cls.MAC_ADDRESS.value,
+        ])
+
+    @classmethod
+    def device_packets_labels(cls):
+        final_labels = cls.default_device_labels()
+        final_labels.extend([
             cls.PACKET_ACTION.value,
         ])
+        return list(final_labels)
 
     @classmethod
     def scrape_event_labels(cls):
@@ -140,6 +147,11 @@ class Metrics(object):
         'tp_link_router_exporter_device_packets_total',
         'The number of packets sent or received by device on router',
         Labels.device_packets_labels())
+
+    ROUTER_DEVICE_CONNECTED_STATUS = Gauge(
+        'tp_link_router_exporter_device_connected_status',
+        'This is set to 1 when a device is connected to this router',
+        Labels.default_device_labels())
 
 
 # https://github.com/rycus86/prometheus_flask_exporter#app-factory-pattern
