@@ -243,14 +243,27 @@ class Collector(object):
     def _record_ipv4_reservations(self, reservations):
         if not reservations:
             return
-        # FIXME: actually implement this!
         log.info(f'got ipv4 reservations: {reservations}')
+        for res in reservations:
+            Metrics.ROUTER_IPV4_RESERVATION_ENABLED.labels(
+                router_name=self.router_name,
+                hostname=res.hostname,
+                ip_address=str(res.ipaddress),
+                mac_address=str(res.macaddress)
+            ).set(res.enabled)
 
     def _record_ipv4_dhcp_leases(self, leases):
         if not leases:
             return
-        # FIXME: actually implement this!
         log.info(f'got ipv4 dhcp leases: {leases}')
+        for lease in leases:
+            log.info(f'recording lease.lease_time: {lease.lease_time}')
+            Metrics.ROUTER_IPV4_RESERVATION_ENABLED.labels(
+                router_name=self.router_name,
+                hostname=lease.hostname,
+                ip_address=str(lease.ipaddress),
+                mac_address=str(lease.macaddress)
+            ).set(lease.lease_time)
 
     # actual part where we decide what metrics to scrape
     def _get_and_record_router_metrics(self):

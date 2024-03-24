@@ -58,6 +58,24 @@ class Labels(Enum):
         ])
 
     @classmethod
+    def default_ipv4_dhcp_lease_labels(cls):
+        return list([
+            cls.ROUTER_NAME.value,
+            cls.HOSTNAME.value,
+            cls.IP_ADDRESS.value,
+            cls.MAC_ADDRESS.value,
+        ])
+
+    @classmethod
+    def default_ipv4_reservation_labels(cls):
+        return list([
+            cls.ROUTER_NAME.value,
+            cls.HOSTNAME.value,
+            cls.IP_ADDRESS.value,
+            cls.MAC_ADDRESS.value,
+        ])
+
+    @classmethod
     def device_packets_labels(cls):
         final_labels = cls.default_device_labels()
         final_labels.extend([
@@ -152,6 +170,18 @@ class Metrics(object):
         'tp_link_router_exporter_device_connected_status',
         'This is set to 1 when a device is connected to this router',
         Labels.default_device_labels())
+
+    # IPv4
+
+    ROUTER_IPV4_RESERVATION_ENABLED = Gauge(
+        'tp_link_router_exporter_router_ipv4_reservation_enabled',
+        'This is the enabled state of an IPv4 reservation',
+        Labels.default_ipv4_reservation_labels())
+
+    ROUTER_IPV4_DHCP_LEASE_TIME = Gauge(
+        'tp_link_router_exporter_router_ipv4_dhcp_lease_time',
+        'This is the lease time for an IPv4 DHCP lease',
+        Labels.default_ipv4_dhcp_lease_labels())
 
 
 # https://github.com/rycus86/prometheus_flask_exporter#app-factory-pattern
