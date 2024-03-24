@@ -18,6 +18,7 @@ class Labels(Enum):
     HARDWARE_VERSION = 'hardware_version'
     MODEL = 'model'
     FIRMWARE_VERSION = 'firmware_version'
+    LEASE_TIME = 'lease_time'
 
     @classmethod
     def labels(cls):
@@ -64,6 +65,7 @@ class Labels(Enum):
             cls.HOSTNAME.value,
             cls.IP_ADDRESS.value,
             cls.MAC_ADDRESS.value,
+            cls.LEASE_TIME.value,
         ])
 
     @classmethod
