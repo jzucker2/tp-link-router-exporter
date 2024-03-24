@@ -15,6 +15,10 @@ class CollectorException(Exception):
     pass
 
 
+class CollectorFetchException(CollectorException):
+    pass
+
+
 class InvalidPacketActionCollectorException(CollectorException):
     pass
 
@@ -81,34 +85,59 @@ class Collector(object):
         self._inc_scrape_event(event)
 
     def _get_firmware(self):
-        firmware = self.router_client.get_firmware()
-        event = ScrapeEvents.GET_FIRMWARE
-        self._inc_scrape_event(event)
-        return firmware
+        try:
+            firmware = self.router_client.get_firmware()
+            event = ScrapeEvents.GET_FIRMWARE
+            self._inc_scrape_event(event)
+            return firmware
+        except Exception as unexp:
+            u_m = f'get firmware got unexp: {unexp}'
+            log.error(u_m)
+            raise CollectorFetchException(u_m)
 
     def _get_status(self):
-        status = self.router_client.get_status()
-        event = ScrapeEvents.GET_STATUS
-        self._inc_scrape_event(event)
-        return status
+        try:
+            status = self.router_client.get_status()
+            event = ScrapeEvents.GET_STATUS
+            self._inc_scrape_event(event)
+            return status
+        except Exception as unexp:
+            u_m = f'get router status got unexp: {unexp}'
+            log.error(u_m)
+            raise CollectorFetchException(u_m)
 
     def _get_ipv4_status(self):
-        status = self.router_client.get_ipv4_status()
-        event = ScrapeEvents.GET_IPV4_STATUS
-        self._inc_scrape_event(event)
-        return status
+        try:
+            status = self.router_client.get_ipv4_status()
+            event = ScrapeEvents.GET_IPV4_STATUS
+            self._inc_scrape_event(event)
+            return status
+        except Exception as unexp:
+            u_m = f'ipv4 status got unexp: {unexp}'
+            log.error(u_m)
+            raise CollectorFetchException(u_m)
 
     def _get_ipv4_reservations(self):
-        res = self.router_client.get_ipv4_reservations()
-        event = ScrapeEvents.GET_IPV4_RESERVATIONS
-        self._inc_scrape_event(event)
-        return res
+        try:
+            res = self.router_client.get_ipv4_reservations()
+            event = ScrapeEvents.GET_IPV4_RESERVATIONS
+            self._inc_scrape_event(event)
+            return res
+        except Exception as unexp:
+            u_m = f'get ipv4 reservations got unexp: {unexp}'
+            log.error(u_m)
+            raise CollectorFetchException(u_m)
 
     def _get_ipv4_dhcp_leases(self):
-        leases = self.router_client.get_ipv4_dhcp_leases()
-        event = ScrapeEvents.GET_IPV4_DHCP_LEASES
-        self._inc_scrape_event(event)
-        return leases
+        try:
+            leases = self.router_client.get_ipv4_dhcp_leases()
+            event = ScrapeEvents.GET_IPV4_DHCP_LEASES
+            self._inc_scrape_event(event)
+            return leases
+        except Exception as unexp:
+            u_m = f'get ipv4 dhcp leases got unexp: {unexp}'
+            log.error(u_m)
+            raise CollectorFetchException(u_m)
 
     def _get_devices(self, status):
         if not status:
