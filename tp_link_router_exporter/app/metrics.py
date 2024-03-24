@@ -18,6 +18,7 @@ class Labels(Enum):
     HARDWARE_VERSION = 'hardware_version'
     MODEL = 'model'
     FIRMWARE_VERSION = 'firmware_version'
+    LEASE_TIME = 'lease_time'
 
     @classmethod
     def labels(cls):
@@ -52,6 +53,25 @@ class Labels(Enum):
         return list([
             cls.ROUTER_NAME.value,
             cls.DEVICE_TYPE.value,
+            cls.HOSTNAME.value,
+            cls.IP_ADDRESS.value,
+            cls.MAC_ADDRESS.value,
+        ])
+
+    @classmethod
+    def default_ipv4_dhcp_lease_labels(cls):
+        return list([
+            cls.ROUTER_NAME.value,
+            cls.HOSTNAME.value,
+            cls.IP_ADDRESS.value,
+            cls.MAC_ADDRESS.value,
+            cls.LEASE_TIME.value,
+        ])
+
+    @classmethod
+    def default_ipv4_reservation_labels(cls):
+        return list([
+            cls.ROUTER_NAME.value,
             cls.HOSTNAME.value,
             cls.IP_ADDRESS.value,
             cls.MAC_ADDRESS.value,
@@ -152,6 +172,18 @@ class Metrics(object):
         'tp_link_router_exporter_device_connected_status',
         'This is set to 1 when a device is connected to this router',
         Labels.default_device_labels())
+
+    # IPv4
+
+    ROUTER_IPV4_RESERVATION_ENABLED = Gauge(
+        'tp_link_router_exporter_router_ipv4_reservation_enabled',
+        'This is the enabled state of an IPv4 reservation',
+        Labels.default_ipv4_reservation_labels())
+
+    ROUTER_IPV4_DHCP_LEASE_INFO = Gauge(
+        'tp_link_router_exporter_router_ipv4_dhcp_lease_info',
+        'This is an info dict for an IPv4 DHCP lease',
+        Labels.default_ipv4_dhcp_lease_labels())
 
 
 # https://github.com/rycus86/prometheus_flask_exporter#app-factory-pattern
