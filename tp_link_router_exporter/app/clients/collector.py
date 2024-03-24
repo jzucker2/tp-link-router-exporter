@@ -311,11 +311,9 @@ class Collector(object):
 
     @classmethod
     def _is_dhcp_lease_permanent(cls, lease_time):
-        if not lease_time:
+        if not lease_time or not len(lease_time):
             return False
-        if lease_time == cls.PERMANENT_LEASE:
-            return True
-        return False
+        return bool(lease_time == cls.PERMANENT_LEASE)
 
     @classmethod
     def get_datetime(cls, input_str):
