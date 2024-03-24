@@ -23,6 +23,10 @@ class CollectorRecordException(CollectorException):
     pass
 
 
+class CollectordRecordPacketActionException(CollectorRecordException):
+    pass
+
+
 class InvalidPacketActionCollectorException(CollectorException):
     pass
 
@@ -204,20 +208,13 @@ class Collector(object):
             log.error(pe_m)
             raise InvalidPacketActionCollectorException(pe_m)
 
-    def _record_device_metrics(self, device):
-        device_type = self.normalize_input(device.type)
-        hostname = device.hostname
-        ipaddress = str(device.ipaddress)
-        macaddress = str(device.macaddress)
-        Metrics.ROUTER_DEVICE_CONNECTED_STATUS.labels(
-            router_name=self.router_name,
-            device_type=device_type,
-            hostname=hostname,
-            ip_address=ipaddress,
-            mac_address=macaddress,
-        ).set(1)
-        for packet_action in PacketActions.metrics_actions_list():
+    def _record_device_packets(self, device, packet_action):
+        try:
             packets = self._get_packets_for_action(device, packet_action)
+            device_type = self.normalize_input(device.type)
+            hostname = device.hostname
+            ipaddress = str(device.ipaddress)
+            macaddress = str(device.macaddress)
             d_m = (f'parsed device: {device} to get '
                    f'device_type: {device_type}, '
                    f'hostname: {hostname}, '
@@ -233,7 +230,26 @@ class Collector(object):
                 ip_address=ipaddress,
                 mac_address=macaddress,
                 packet_action=packet_action.label_string,
-            ).set(packets)
+            ).set(packets or 0)
+        except Exception as unexp:
+            u_m = f'recording packets got unexp: {unexp}'
+            log.error(u_m)
+            raise CollectordRecordPacketActionException(u_m)
+
+    def _record_device_metrics(self, device):
+        device_type = self.normalize_input(device.type)
+        hostname = device.hostname
+        ipaddress = str(device.ipaddress)
+        macaddress = str(device.macaddress)
+        Metrics.ROUTER_DEVICE_CONNECTED_STATUS.labels(
+            router_name=self.router_name,
+            device_type=device_type,
+            hostname=hostname,
+            ip_address=ipaddress,
+            mac_address=macaddress,
+        ).set(1)
+        for packet_action in PacketActions.metrics_actions_list():
+            self._record_device_packets(device, packet_action)
 
     def _record_devices_metrics(self, devices):
         if not devices:
