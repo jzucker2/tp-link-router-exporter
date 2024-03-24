@@ -15,6 +15,14 @@ class CollectorException(Exception):
     pass
 
 
+class CollectorFetchException(CollectorException):
+    pass
+
+
+class CollectorRecordException(CollectorException):
+    pass
+
+
 class InvalidPacketActionCollectorException(CollectorException):
     pass
 
@@ -81,34 +89,59 @@ class Collector(object):
         self._inc_scrape_event(event)
 
     def _get_firmware(self):
-        firmware = self.router_client.get_firmware()
-        event = ScrapeEvents.GET_FIRMWARE
-        self._inc_scrape_event(event)
-        return firmware
+        try:
+            firmware = self.router_client.get_firmware()
+            event = ScrapeEvents.GET_FIRMWARE
+            self._inc_scrape_event(event)
+            return firmware
+        except Exception as unexp:
+            u_m = f'get firmware got unexp: {unexp}'
+            log.error(u_m)
+            raise CollectorFetchException(u_m)
 
     def _get_status(self):
-        status = self.router_client.get_status()
-        event = ScrapeEvents.GET_STATUS
-        self._inc_scrape_event(event)
-        return status
+        try:
+            status = self.router_client.get_status()
+            event = ScrapeEvents.GET_STATUS
+            self._inc_scrape_event(event)
+            return status
+        except Exception as unexp:
+            u_m = f'get router status got unexp: {unexp}'
+            log.error(u_m)
+            raise CollectorFetchException(u_m)
 
     def _get_ipv4_status(self):
-        status = self.router_client.get_ipv4_status()
-        event = ScrapeEvents.GET_IPV4_STATUS
-        self._inc_scrape_event(event)
-        return status
+        try:
+            status = self.router_client.get_ipv4_status()
+            event = ScrapeEvents.GET_IPV4_STATUS
+            self._inc_scrape_event(event)
+            return status
+        except Exception as unexp:
+            u_m = f'ipv4 status got unexp: {unexp}'
+            log.error(u_m)
+            raise CollectorFetchException(u_m)
 
     def _get_ipv4_reservations(self):
-        res = self.router_client.get_ipv4_reservations()
-        event = ScrapeEvents.GET_IPV4_RESERVATIONS
-        self._inc_scrape_event(event)
-        return res
+        try:
+            res = self.router_client.get_ipv4_reservations()
+            event = ScrapeEvents.GET_IPV4_RESERVATIONS
+            self._inc_scrape_event(event)
+            return res
+        except Exception as unexp:
+            u_m = f'get ipv4 reservations got unexp: {unexp}'
+            log.error(u_m)
+            raise CollectorFetchException(u_m)
 
     def _get_ipv4_dhcp_leases(self):
-        leases = self.router_client.get_ipv4_dhcp_leases()
-        event = ScrapeEvents.GET_IPV4_DHCP_LEASES
-        self._inc_scrape_event(event)
-        return leases
+        try:
+            leases = self.router_client.get_ipv4_dhcp_leases()
+            event = ScrapeEvents.GET_IPV4_DHCP_LEASES
+            self._inc_scrape_event(event)
+            return leases
+        except Exception as unexp:
+            u_m = f'get ipv4 dhcp leases got unexp: {unexp}'
+            log.error(u_m)
+            raise CollectorFetchException(u_m)
 
     def _get_devices(self, status):
         if not status:
@@ -160,36 +193,47 @@ class Collector(object):
         #     router_name=self.router_name,
         # ).set(status.wan_ipv4_uptime or 0)
 
-    def _record_device_packet_metrics(self, device, packet_action):
-        device_type = self.normalize_input(device.type)
-        hostname = device.hostname
-        ipaddress = str(device.ipaddress)
-        macaddress = str(device.macaddress)
-        packets = 0
+    @classmethod
+    def _get_packets_for_action(cls, device, packet_action):
         if packet_action == PacketActions.SENT:
-            packets = device.packets_sent
+            return device.packets_sent
         elif packet_action == PacketActions.RECEIVED:
-            packets = device.packets_received
+            return device.packets_received
         else:
             pe_m = f'Invalid PacketAction for packet_action: {packet_action}'
             log.error(pe_m)
             raise InvalidPacketActionCollectorException(pe_m)
-        d_m = (f'parsed device: {device} to get '
-               f'device_type: {device_type}, '
-               f'hostname: {hostname}, '
-               f'ipaddress: {ipaddress}, '
-               f'macaddress: {macaddress}, '
-               f'packet_action: {packet_action}, '
-               f'packets: {packets}')
-        log.debug(d_m)
-        Metrics.ROUTER_DEVICE_PACKETS_TOTAL.labels(
+
+    def _record_device_metrics(self, device):
+        device_type = self.normalize_input(device.type)
+        hostname = device.hostname
+        ipaddress = str(device.ipaddress)
+        macaddress = str(device.macaddress)
+        Metrics.ROUTER_DEVICE_CONNECTED_STATUS.labels(
             router_name=self.router_name,
             device_type=device_type,
             hostname=hostname,
             ip_address=ipaddress,
             mac_address=macaddress,
-            packet_action=packet_action.label_string,
-        ).set(packets)
+        ).set(1)
+        for packet_action in PacketActions.metrics_actions_list():
+            packets = self._get_packets_for_action(device, packet_action)
+            d_m = (f'parsed device: {device} to get '
+                   f'device_type: {device_type}, '
+                   f'hostname: {hostname}, '
+                   f'ipaddress: {ipaddress}, '
+                   f'macaddress: {macaddress}, '
+                   f'packet_action: {packet_action}, '
+                   f'packets: {packets}')
+            log.debug(d_m)
+            Metrics.ROUTER_DEVICE_PACKETS_TOTAL.labels(
+                router_name=self.router_name,
+                device_type=device_type,
+                hostname=hostname,
+                ip_address=ipaddress,
+                mac_address=macaddress,
+                packet_action=packet_action.label_string,
+            ).set(packets)
 
     def _record_devices_metrics(self, devices):
         if not devices:
@@ -197,8 +241,8 @@ class Collector(object):
         d_m = f'devices metrics to parse devices: {devices}'
         log.debug(d_m)
         for device in devices:
-            for packet_action in PacketActions.metrics_actions_list():
-                self._record_device_packet_metrics(device, packet_action)
+            log.debug(f'recording metrics for device: {device}')
+            self._record_device_metrics(device)
 
     def _get_firmware_property_value(self, firmware, property):
         if property == RouterFirmwareProperties.HARDWARE_VERSION:
@@ -232,14 +276,97 @@ class Collector(object):
     def _record_ipv4_reservations(self, reservations):
         if not reservations:
             return
-        # FIXME: actually implement this!
-        log.info(f'got ipv4 reservations: {reservations}')
+        log.debug(f'got ipv4 reservations: {reservations}')
+        for res in reservations:
+            log.debug(f'recording res.enabled: {res.enabled}')
+            Metrics.ROUTER_IPV4_RESERVATION_ENABLED.labels(
+                router_name=self.router_name,
+                hostname=res.hostname,
+                ip_address=str(res.ipaddress),
+                mac_address=str(res.macaddress),
+            ).set(res.enabled)
 
     def _record_ipv4_dhcp_leases(self, leases):
         if not leases:
             return
-        # FIXME: actually implement this!
-        log.info(f'got ipv4 dhcp leases: {leases}')
+        log.debug(f'got ipv4 dhcp leases: {leases}')
+        for lease in leases:
+            log.debug(f'recording lease.lease_time: {lease.lease_time}')
+            Metrics.ROUTER_IPV4_DHCP_LEASE_INFO.labels(
+                router_name=self.router_name,
+                hostname=lease.hostname,
+                ip_address=str(lease.ipaddress),
+                mac_address=str(lease.macaddress),
+                lease_time=str(lease.lease_time),
+            ).set(1)
+
+    def _get_and_record_firmware(self):
+        try:
+            # Get firmware info - returns Firmware
+            firmware = self._get_firmware()
+            log.debug(f'router firmware: {firmware}')
+            self._record_firmware_metrics(firmware)
+        except CollectorFetchException as cfe:
+            log.warning(f'cannot record firmware due to cfe: {cfe}')
+        except Exception as unexp:
+            u_m = f'record firmware got unexp: {unexp}'
+            log.error(u_m)
+            raise CollectorRecordException(u_m)
+
+    def _get_and_record_status_and_devices(self):
+        try:
+            # Get status info - returns Status
+            status = self._get_status()
+            log.debug(f'router status: {status}')
+            self._record_status_metrics(status)
+            devices = self._get_devices(status)
+            self._record_devices_metrics(devices)
+        except CollectorFetchException as cfe:
+            log.warning(f'cannot record status and devices due to cfe: {cfe}')
+        except Exception as unexp:
+            u_m = f'record status and devices got unexp: {unexp}'
+            log.error(u_m)
+            raise CollectorRecordException(u_m)
+
+    def _get_and_record_ipv4_status(self):
+        try:
+            # Get IPv4 status
+            # FIXME: get_ipv4_status raises an exception in underlying client
+            ipv4_status = self._get_ipv4_status()
+            log.info(f'router ipv4_status: {ipv4_status}')
+            self._record_ipv4_status_metrics(ipv4_status)
+        except CollectorFetchException as cfe:
+            log.warning(f'cannot record ipv4 status due to cfe: {cfe}')
+        except Exception as unexp:
+            u_m = f'record ipv4 status got unexp: {unexp}'
+            log.error(u_m)
+            raise CollectorRecordException(u_m)
+
+    def _get_and_record_ipv4_reservations(self):
+        try:
+            # Get IPv4 reservations
+            ipv4_reservations = self._get_ipv4_reservations()
+            log.debug(f'router ipv4_reservations: {ipv4_reservations}')
+            self._record_ipv4_reservations(ipv4_reservations)
+        except CollectorFetchException as cfe:
+            log.warning(f'cannot record ipv4 reservations due to cfe: {cfe}')
+        except Exception as unexp:
+            u_m = f'record ipv4 reservations got unexp: {unexp}'
+            log.error(u_m)
+            raise CollectorRecordException(u_m)
+
+    def _get_and_record_ipv4_dhcp_leases(self):
+        try:
+            # Get IPv4 dhcp leases
+            ipv4_leases = self._get_ipv4_dhcp_leases()
+            log.debug(f'router ipv4_leases: {ipv4_leases}')
+            self._record_ipv4_dhcp_leases(ipv4_leases)
+        except CollectorFetchException as cfe:
+            log.warning(f'cannot record ipv4 dhcp leases due to cfe: {cfe}')
+        except Exception as unexp:
+            u_m = f'record ipv4 dhcp leases got unexp: {unexp}'
+            log.error(u_m)
+            raise CollectorRecordException(u_m)
 
     # actual part where we decide what metrics to scrape
     def _get_and_record_router_metrics(self):
@@ -249,38 +376,19 @@ class Collector(object):
         a_m = (f'attempting to actually get metrics at '
                f'self.router_ip: {self.router_ip}')
         log.debug(a_m)
-        # Get firmware info - returns Firmware
-        firmware = self._get_firmware()
-        log.debug(f'router firmware: {firmware}')
-        self._record_firmware_metrics(firmware)
 
-        # Get status info - returns Status
-        status = self._get_status()
-        log.debug(f'router status: {status}')
-        self._record_status_metrics(status)
-        devices = self._get_devices(status)
-        self._record_devices_metrics(devices)
-
-        # Get IPv4 status
-        # FIXME: get_ipv4_status raises an exception in underlying client
-        # ipv4_status = self._get_ipv4_status()
-        # log.info(f'router ipv4_status: {ipv4_status}')
-        # self._record_ipv4_status_metrics(ipv4_status)
-
-        # Get IPv4 reservations
-        ipv4_reservations = self._get_ipv4_reservations()
-        log.debug(f'router ipv4_reservations: {ipv4_reservations}')
-        self._record_ipv4_reservations(ipv4_reservations)
-
-        # Get IPv4 dhcp leases
-        ipv4_leases = self._get_ipv4_dhcp_leases()
-        log.debug(f'router ipv4_leases: {ipv4_leases}')
-        self._record_ipv4_dhcp_leases(ipv4_leases)
+        # now actually get and record metrics
+        self._get_and_record_firmware()
+        # FIXME: need to work on IPv4 status
+        # self._get_and_record_ipv4_status()
+        self._get_and_record_status_and_devices()
+        self._get_and_record_ipv4_reservations()
+        self._get_and_record_ipv4_dhcp_leases()
 
     # handles flow, including log in/out
     def _execute_get_router_metrics(self):
         log.debug('_get_router_metrics')
-        self._inc_scrape_event(ScrapeEvents.ATTEMPT_GET_ROUTER_METRICS)
+        self._inc_scrape_event(ScrapeEvents.START_ROUTER_SCRAPE_FLOW)
         try:
             # authorizing
             a_m = (f'attempting to authorize at '

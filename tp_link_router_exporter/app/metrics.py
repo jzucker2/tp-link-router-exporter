@@ -18,6 +18,7 @@ class Labels(Enum):
     HARDWARE_VERSION = 'hardware_version'
     MODEL = 'model'
     FIRMWARE_VERSION = 'firmware_version'
+    LEASE_TIME = 'lease_time'
 
     @classmethod
     def labels(cls):
@@ -48,15 +49,41 @@ class Labels(Enum):
         ])
 
     @classmethod
-    def device_packets_labels(cls):
+    def default_device_labels(cls):
         return list([
             cls.ROUTER_NAME.value,
             cls.DEVICE_TYPE.value,
             cls.HOSTNAME.value,
             cls.IP_ADDRESS.value,
             cls.MAC_ADDRESS.value,
+        ])
+
+    @classmethod
+    def default_ipv4_dhcp_lease_labels(cls):
+        return list([
+            cls.ROUTER_NAME.value,
+            cls.HOSTNAME.value,
+            cls.IP_ADDRESS.value,
+            cls.MAC_ADDRESS.value,
+            cls.LEASE_TIME.value,
+        ])
+
+    @classmethod
+    def default_ipv4_reservation_labels(cls):
+        return list([
+            cls.ROUTER_NAME.value,
+            cls.HOSTNAME.value,
+            cls.IP_ADDRESS.value,
+            cls.MAC_ADDRESS.value,
+        ])
+
+    @classmethod
+    def device_packets_labels(cls):
+        final_labels = cls.default_device_labels()
+        final_labels.extend([
             cls.PACKET_ACTION.value,
         ])
+        return list(final_labels)
 
     @classmethod
     def scrape_event_labels(cls):
@@ -140,6 +167,23 @@ class Metrics(object):
         'tp_link_router_exporter_device_packets_total',
         'The number of packets sent or received by device on router',
         Labels.device_packets_labels())
+
+    ROUTER_DEVICE_CONNECTED_STATUS = Gauge(
+        'tp_link_router_exporter_device_connected_status',
+        'This is set to 1 when a device is connected to this router',
+        Labels.default_device_labels())
+
+    # IPv4
+
+    ROUTER_IPV4_RESERVATION_ENABLED = Gauge(
+        'tp_link_router_exporter_router_ipv4_reservation_enabled',
+        'This is the enabled state of an IPv4 reservation',
+        Labels.default_ipv4_reservation_labels())
+
+    ROUTER_IPV4_DHCP_LEASE_INFO = Gauge(
+        'tp_link_router_exporter_router_ipv4_dhcp_lease_info',
+        'This is an info dict for an IPv4 DHCP lease',
+        Labels.default_ipv4_dhcp_lease_labels())
 
 
 # https://github.com/rycus86/prometheus_flask_exporter#app-factory-pattern
