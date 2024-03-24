@@ -388,7 +388,7 @@ class Collector(object):
     # handles flow, including log in/out
     def _execute_get_router_metrics(self):
         log.debug('_get_router_metrics')
-        self._inc_scrape_event(ScrapeEvents.ATTEMPT_GET_ROUTER_METRICS)
+        self._inc_scrape_event(ScrapeEvents.START_ROUTER_SCRAPE_FLOW)
         try:
             # authorizing
             a_m = (f'attempting to authorize at '
