@@ -59,15 +59,6 @@ class Labels(Enum):
         ])
 
     @classmethod
-    def permanent_ipv4_dhcp_lease_labels(cls):
-        return list([
-            cls.ROUTER_NAME.value,
-            cls.HOSTNAME.value,
-            cls.IP_ADDRESS.value,
-            cls.MAC_ADDRESS.value,
-        ])
-
-    @classmethod
     def default_ipv4_dhcp_lease_labels(cls):
         return list([
             cls.ROUTER_NAME.value,
