@@ -19,6 +19,10 @@ class CollectorFetchException(CollectorException):
     pass
 
 
+class CollectorRecordException(CollectorException):
+    pass
+
+
 class InvalidPacketActionCollectorException(CollectorException):
     pass
 
@@ -296,6 +300,74 @@ class Collector(object):
                 lease_time=str(lease.lease_time),
             ).set(1)
 
+    def _get_and_record_firmware(self):
+        try:
+            # Get firmware info - returns Firmware
+            firmware = self._get_firmware()
+            log.debug(f'router firmware: {firmware}')
+            self._record_firmware_metrics(firmware)
+        except CollectorFetchException as cfe:
+            log.warning(f'cannot record firmware due to cfe: {cfe}')
+        except Exception as unexp:
+            u_m = f'record firmware got unexp: {unexp}'
+            log.error(u_m)
+            raise CollectorRecordException(u_m)
+
+    def _get_and_record_status_and_devices(self):
+        try:
+            # Get status info - returns Status
+            status = self._get_status()
+            log.debug(f'router status: {status}')
+            self._record_status_metrics(status)
+            devices = self._get_devices(status)
+            self._record_devices_metrics(devices)
+        except CollectorFetchException as cfe:
+            log.warning(f'cannot record status and devices due to cfe: {cfe}')
+        except Exception as unexp:
+            u_m = f'record status and devices got unexp: {unexp}'
+            log.error(u_m)
+            raise CollectorRecordException(u_m)
+
+    def _get_and_record_ipv4_status(self):
+        try:
+            # Get IPv4 status
+            # FIXME: get_ipv4_status raises an exception in underlying client
+            ipv4_status = self._get_ipv4_status()
+            log.info(f'router ipv4_status: {ipv4_status}')
+            self._record_ipv4_status_metrics(ipv4_status)
+        except CollectorFetchException as cfe:
+            log.warning(f'cannot record ipv4 status due to cfe: {cfe}')
+        except Exception as unexp:
+            u_m = f'record ipv4 status got unexp: {unexp}'
+            log.error(u_m)
+            raise CollectorRecordException(u_m)
+
+    def _get_and_record_ipv4_reservations(self):
+        try:
+            # Get IPv4 reservations
+            ipv4_reservations = self._get_ipv4_reservations()
+            log.debug(f'router ipv4_reservations: {ipv4_reservations}')
+            self._record_ipv4_reservations(ipv4_reservations)
+        except CollectorFetchException as cfe:
+            log.warning(f'cannot record ipv4 reservations due to cfe: {cfe}')
+        except Exception as unexp:
+            u_m = f'record ipv4 reservations got unexp: {unexp}'
+            log.error(u_m)
+            raise CollectorRecordException(u_m)
+
+    def _get_and_record_ipv4_dhcp_leases(self):
+        try:
+            # Get IPv4 dhcp leases
+            ipv4_leases = self._get_ipv4_dhcp_leases()
+            log.debug(f'router ipv4_leases: {ipv4_leases}')
+            self._record_ipv4_dhcp_leases(ipv4_leases)
+        except CollectorFetchException as cfe:
+            log.warning(f'cannot record ipv4 dhcp leases due to cfe: {cfe}')
+        except Exception as unexp:
+            u_m = f'record ipv4 dhcp leases got unexp: {unexp}'
+            log.error(u_m)
+            raise CollectorRecordException(u_m)
+
     # actual part where we decide what metrics to scrape
     def _get_and_record_router_metrics(self):
         log.debug('_get_router_metrics')
@@ -304,33 +376,14 @@ class Collector(object):
         a_m = (f'attempting to actually get metrics at '
                f'self.router_ip: {self.router_ip}')
         log.debug(a_m)
-        # Get firmware info - returns Firmware
-        firmware = self._get_firmware()
-        log.debug(f'router firmware: {firmware}')
-        self._record_firmware_metrics(firmware)
 
-        # Get status info - returns Status
-        status = self._get_status()
-        log.debug(f'router status: {status}')
-        self._record_status_metrics(status)
-        devices = self._get_devices(status)
-        self._record_devices_metrics(devices)
-
-        # Get IPv4 status
-        # FIXME: get_ipv4_status raises an exception in underlying client
-        # ipv4_status = self._get_ipv4_status()
-        # log.info(f'router ipv4_status: {ipv4_status}')
-        # self._record_ipv4_status_metrics(ipv4_status)
-
-        # Get IPv4 reservations
-        ipv4_reservations = self._get_ipv4_reservations()
-        log.debug(f'router ipv4_reservations: {ipv4_reservations}')
-        self._record_ipv4_reservations(ipv4_reservations)
-
-        # Get IPv4 dhcp leases
-        ipv4_leases = self._get_ipv4_dhcp_leases()
-        log.debug(f'router ipv4_leases: {ipv4_leases}')
-        self._record_ipv4_dhcp_leases(ipv4_leases)
+        # now actually get and record metrics
+        self._get_and_record_firmware()
+        # FIXME: need to work on IPv4 status
+        # self._get_and_record_ipv4_status()
+        self._get_and_record_status_and_devices()
+        self._get_and_record_ipv4_reservations()
+        self._get_and_record_ipv4_dhcp_leases()
 
     # handles flow, including log in/out
     def _execute_get_router_metrics(self):
