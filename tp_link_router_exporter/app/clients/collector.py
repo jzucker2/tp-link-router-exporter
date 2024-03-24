@@ -245,6 +245,7 @@ class Collector(object):
             return
         log.info(f'got ipv4 reservations: {reservations}')
         for res in reservations:
+            log.info(f'recording res.enabled: {res.enabled}')
             Metrics.ROUTER_IPV4_RESERVATION_ENABLED.labels(
                 router_name=self.router_name,
                 hostname=res.hostname,
