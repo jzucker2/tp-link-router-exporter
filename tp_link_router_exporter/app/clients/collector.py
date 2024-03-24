@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import current_app as app
 from ..utils import global_get_now, normalize_name
 from ..common.router_firmware_properties import RouterFirmwareProperties
@@ -23,6 +24,14 @@ class CollectorRecordException(CollectorException):
     pass
 
 
+class CollectordRecordPacketActionException(CollectorRecordException):
+    pass
+
+
+class CollectordRecordDHCPLeaseException(CollectorRecordException):
+    pass
+
+
 class InvalidPacketActionCollectorException(CollectorException):
     pass
 
@@ -37,6 +46,8 @@ class InvalidClientConnectionTypeCollectorException(CollectorException):
 
 class Collector(object):
     DEFAULT_ROUTER_NAME = 'default'
+    PERMANENT_LEASE = 'Permanent'
+    DATETIME_FORMAT = "%H:%M:%S"
 
     @classmethod
     def normalize_input(cls, input):
@@ -204,20 +215,13 @@ class Collector(object):
             log.error(pe_m)
             raise InvalidPacketActionCollectorException(pe_m)
 
-    def _record_device_metrics(self, device):
-        device_type = self.normalize_input(device.type)
-        hostname = device.hostname
-        ipaddress = str(device.ipaddress)
-        macaddress = str(device.macaddress)
-        Metrics.ROUTER_DEVICE_CONNECTED_STATUS.labels(
-            router_name=self.router_name,
-            device_type=device_type,
-            hostname=hostname,
-            ip_address=ipaddress,
-            mac_address=macaddress,
-        ).set(1)
-        for packet_action in PacketActions.metrics_actions_list():
+    def _record_device_packets(self, device, packet_action):
+        try:
             packets = self._get_packets_for_action(device, packet_action)
+            device_type = self.normalize_input(device.type)
+            hostname = device.hostname
+            ipaddress = str(device.ipaddress)
+            macaddress = str(device.macaddress)
             d_m = (f'parsed device: {device} to get '
                    f'device_type: {device_type}, '
                    f'hostname: {hostname}, '
@@ -233,7 +237,26 @@ class Collector(object):
                 ip_address=ipaddress,
                 mac_address=macaddress,
                 packet_action=packet_action.label_string,
-            ).set(packets)
+            ).set(packets or 0)
+        except Exception as unexp:
+            u_m = f'recording packets got unexp: {unexp}'
+            log.error(u_m)
+            raise CollectordRecordPacketActionException(u_m)
+
+    def _record_device_metrics(self, device):
+        device_type = self.normalize_input(device.type)
+        hostname = device.hostname
+        ipaddress = str(device.ipaddress)
+        macaddress = str(device.macaddress)
+        Metrics.ROUTER_DEVICE_CONNECTED_STATUS.labels(
+            router_name=self.router_name,
+            device_type=device_type,
+            hostname=hostname,
+            ip_address=ipaddress,
+            mac_address=macaddress,
+        ).set(1)
+        for packet_action in PacketActions.metrics_actions_list():
+            self._record_device_packets(device, packet_action)
 
     def _record_devices_metrics(self, devices):
         if not devices:
@@ -286,19 +309,62 @@ class Collector(object):
                 mac_address=str(res.macaddress),
             ).set(res.enabled)
 
+    @classmethod
+    def _is_dhcp_lease_permanent(cls, lease_time):
+        if not lease_time or not len(lease_time):
+            return False
+        return bool(lease_time == cls.PERMANENT_LEASE)
+
+    @classmethod
+    def get_datetime(cls, input_str):
+        return datetime.strptime(input_str, cls.DATETIME_FORMAT)
+
+    @classmethod
+    def get_zeroth_dt(cls):
+        return cls.get_datetime("00:00:00")
+
+    @classmethod
+    def _convert_dhcp_lease_time(cls, lease_time):
+        if not lease_time:
+            return 0
+        # https://stackoverflow.com/questions/4628122/how-to-construct-a-timedelta-object-from-a-simple-string  # noqa: E501
+        dt_diff = cls.get_datetime(lease_time) - cls.get_zeroth_dt()
+        total_seconds = dt_diff.total_seconds()
+        log.debug(f'lease_time: {lease_time} got dt_diff: {dt_diff} '
+                  f'with total_seconds: {total_seconds}')
+        return total_seconds
+
+    def _record_dhcp_lease(self, lease):
+        try:
+            lease_time = lease.lease_time
+            log.debug(f'recording lease_time: {lease_time}')
+            if self._is_dhcp_lease_permanent(lease_time):
+                Metrics.ROUTER_IPV4_DHCP_PERMANENT_LEASE_INFO.labels(
+                    router_name=self.router_name,
+                    hostname=lease.hostname,
+                    ip_address=str(lease.ipaddress),
+                    mac_address=str(lease.macaddress),
+                ).set(1)
+            else:
+                converted_lease_time = self._convert_dhcp_lease_time(
+                    lease_time)
+                Metrics.ROUTER_IPV4_DHCP_LEASE_TIME_SECONDS.labels(
+                    router_name=self.router_name,
+                    hostname=lease.hostname,
+                    ip_address=str(lease.ipaddress),
+                    mac_address=str(lease.macaddress),
+                ).set(converted_lease_time)
+        except Exception as unexp:
+            u_m = f'recording dhcp lease got unexp: {unexp}'
+            log.error(u_m)
+            raise CollectordRecordDHCPLeaseException(u_m)
+
     def _record_ipv4_dhcp_leases(self, leases):
         if not leases:
             return
         log.debug(f'got ipv4 dhcp leases: {leases}')
         for lease in leases:
-            log.debug(f'recording lease.lease_time: {lease.lease_time}')
-            Metrics.ROUTER_IPV4_DHCP_LEASE_INFO.labels(
-                router_name=self.router_name,
-                hostname=lease.hostname,
-                ip_address=str(lease.ipaddress),
-                mac_address=str(lease.macaddress),
-                lease_time=str(lease.lease_time),
-            ).set(1)
+            self._record_dhcp_lease(lease)
 
     def _get_and_record_firmware(self):
         try:

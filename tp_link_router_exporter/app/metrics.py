@@ -65,7 +65,6 @@ class Labels(Enum):
             cls.HOSTNAME.value,
             cls.IP_ADDRESS.value,
             cls.MAC_ADDRESS.value,
-            cls.LEASE_TIME.value,
         ])
 
     @classmethod
@@ -180,9 +179,14 @@ class Metrics(object):
         'This is the enabled state of an IPv4 reservation',
         Labels.default_ipv4_reservation_labels())
 
-    ROUTER_IPV4_DHCP_LEASE_INFO = Gauge(
-        'tp_link_router_exporter_router_ipv4_dhcp_lease_info',
-        'This is an info dict for an IPv4 DHCP lease',
+    ROUTER_IPV4_DHCP_LEASE_TIME_SECONDS = Gauge(
+        'tp_link_router_exporter_router_ipv4_dhcp_lease_time_seconds',
+        'This is the time remaining (s) for an IPv4 DHCP lease',
+        Labels.default_ipv4_dhcp_lease_labels())
+
+    ROUTER_IPV4_DHCP_PERMANENT_LEASE_INFO = Gauge(
+        'tp_link_router_exporter_router_ipv4_dhcp_permanent_lease_info',
+        'This is an info dict for an IPv4 DHCP lease that is permanent',
         Labels.default_ipv4_dhcp_lease_labels())
 
 
