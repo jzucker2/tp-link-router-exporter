@@ -259,7 +259,7 @@ class Collector(object):
         log.debug(f'got ipv4 dhcp leases: {leases}')
         for lease in leases:
             log.debug(f'recording lease.lease_time: {lease.lease_time}')
-            Metrics.ROUTER_IPV4_DHCP_LEASE_TIME.labels(
+            Metrics.ROUTER_IPV4_DHCP_LEASE_INFO.labels(
                 router_name=self.router_name,
                 hostname=lease.hostname,
                 ip_address=str(lease.ipaddress),

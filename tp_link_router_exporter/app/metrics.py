@@ -180,9 +180,9 @@ class Metrics(object):
         'This is the enabled state of an IPv4 reservation',
         Labels.default_ipv4_reservation_labels())
 
-    ROUTER_IPV4_DHCP_LEASE_TIME = Gauge(
-        'tp_link_router_exporter_router_ipv4_dhcp_lease_time',
-        'This is the lease time for an IPv4 DHCP lease',
+    ROUTER_IPV4_DHCP_LEASE_INFO = Gauge(
+        'tp_link_router_exporter_router_ipv4_dhcp_lease_info',
+        'This is an info dict for an IPv4 DHCP lease',
         Labels.default_ipv4_dhcp_lease_labels())
 
 
