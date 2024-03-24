@@ -332,14 +332,14 @@ class Collector(object):
         # https://stackoverflow.com/questions/4628122/how-to-construct-a-timedelta-object-from-a-simple-string  # noqa: E501
         dt_diff = cls.get_datetime(lease_time) - cls.get_zeroth_dt()
         total_seconds = dt_diff.total_seconds()
-        log.info(f'lease_time: {lease_time} got dt_diff: {dt_diff} '
-                 f'with total_seconds: {total_seconds}')
+        log.debug(f'lease_time: {lease_time} got dt_diff: {dt_diff} '
+                  f'with total_seconds: {total_seconds}')
         return total_seconds
 
     def _record_dhcp_lease(self, lease):
         try:
             lease_time = lease.lease_time
-            log.info(f'recording lease_time: {lease_time}')
+            log.debug(f'recording lease_time: {lease_time}')
             if self._is_dhcp_lease_permanent(lease_time):
                 Metrics.ROUTER_IPV4_DHCP_PERMANENT_LEASE_INFO.labels(
                     router_name=self.router_name,
