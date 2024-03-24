@@ -47,6 +47,7 @@ class InvalidClientConnectionTypeCollectorException(CollectorException):
 class Collector(object):
     DEFAULT_ROUTER_NAME = 'default'
     PERMANENT_LEASE = 'Permanent'
+    DATETIME_FORMAT = "%H:%M:%S"
 
     @classmethod
     def normalize_input(cls, input):
@@ -317,11 +318,23 @@ class Collector(object):
         return False
 
     @classmethod
+    def get_datetime(cls, input_str):
+        return datetime.strptime(input_str, cls.DATETIME_FORMAT)
+
+    @classmethod
+    def get_zeroth_dt(cls):
+        return cls.get_datetime("00:00:00")
+
+    @classmethod
     def _convert_dhcp_lease_time(cls, lease_time):
         if not lease_time:
             return 0
         # https://stackoverflow.com/questions/4628122/how-to-construct-a-timedelta-object-from-a-simple-string  # noqa: E501
-        return datetime.strptime(lease_time, "%H:%M:%S")
+        dt_diff = cls.get_datetime(lease_time) - cls.get_zeroth_dt()
+        total_seconds = dt_diff.total_seconds()
+        log.info(f'lease_time: {lease_time} got dt_diff: {dt_diff} '
+                 f'with total_seconds: {total_seconds}')
+        return total_seconds
 
     def _record_dhcp_lease(self, lease):
         try:
