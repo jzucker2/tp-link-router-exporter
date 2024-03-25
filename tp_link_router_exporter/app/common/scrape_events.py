@@ -3,6 +3,8 @@ from enum import Enum
 
 class ScrapeEvents(Enum):
     AUTHORIZE = 'authorize'
+    # this is after the first metric but before devices
+    UPDATE_LAST_UPDATE_DATE = 'update_last_update_date'
     LOGOUT = 'logout'
     GET_FIRMWARE = 'get_firmware'
     GET_STATUS = 'get_status'

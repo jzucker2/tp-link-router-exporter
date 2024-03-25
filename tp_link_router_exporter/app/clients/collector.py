@@ -6,6 +6,7 @@ from ..common.client_connection_types import ClientConnectionTypes
 from ..common.scrape_events import ScrapeEvents
 from ..common.packet_actions import PacketActions
 from ..metrics import Metrics
+from .device_cache import DeviceCache
 from .tp_link_router import TPLinkRouter
 
 
@@ -58,26 +59,47 @@ class Collector(object):
         return cls.DEFAULT_ROUTER_NAME
 
     @classmethod
+    def default_device_cache(cls):
+        return DeviceCache.default_device_cache()
+
+    @classmethod
     def get_collector(cls, router_client=None, **kwargs):
         if not router_client:
             router_client = TPLinkRouter.get_client(**kwargs)
         router_name = kwargs.get('router_name')
         if not router_name:
             router_name = cls.default_router_name()
-        return cls(router_client, router_name)
+        device_cache = kwargs.get('device_cache')
+        if not device_cache:
+            device_cache = cls.default_device_cache()
+        return cls(router_client, router_name, device_cache)
 
-    def __init__(self, router_client, router_name):
+    def __init__(self, router_client, router_name, device_cache):
         super().__init__()
         self.router_client = router_client
         self.router_name = router_name
-        self._last_power_value = None
+        self._last_update_date = None
+        self._device_cache = device_cache
+
+    @property
+    def device_cache(self):
+        return self._device_cache
+
+    @property
+    def last_update_date(self):
+        return self._last_update_date
+
+    def _update_last_update_date(self):
+        self._inc_scrape_event(ScrapeEvents.UPDATE_LAST_UPDATE_DATE)
+        self._last_updated_date = self.get_now()
 
     @classmethod
     def get_now(cls):
         return global_get_now()
 
     def __repr__(self):
-        return f'Collector => blah: {self._last_power_value}'
+        return (f'Collector (updated: {self.last_update_date}) => '
+                f'router_client: {self.router_client}')
 
     def _inc_scrape_event(self, event):
         Metrics.ROUTER_SCRAPE_EVENT_COLLECTOR_COUNTER.labels(
@@ -445,6 +467,9 @@ class Collector(object):
 
         # now actually get and record metrics
         self._get_and_record_firmware()
+        # I am updating this value after getting the firmware,
+        # so we know we got at least **something**
+        self._update_last_update_date()
         # FIXME: need to work on IPv4 status
         # self._get_and_record_ipv4_status()
         self._get_and_record_status_and_devices()

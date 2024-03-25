@@ -10,9 +10,19 @@ class DeviceCacheException(Exception):
 
 
 class DeviceCache(object):
+    @classmethod
+    def default_device_cache(cls):
+        return cls()
+
+    # def __init__(self, last_update_date):
     def __init__(self):
         super().__init__()
         self._devices = {}
+    #     self._last_update_date = last_update_date
+    #
+    # @property
+    # def last_update_date(self):
+    #     return self._last_update_date
 
     @property
     def devices(self):
