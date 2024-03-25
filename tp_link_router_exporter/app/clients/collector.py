@@ -25,6 +25,10 @@ class CollectorRecordException(CollectorException):
     pass
 
 
+class CollectordRecordDeviceStatusException(CollectorRecordException):
+    pass
+
+
 class CollectordRecordPacketActionException(CollectorRecordException):
     pass
 
@@ -84,6 +88,21 @@ class Collector(object):
     @property
     def device_cache(self):
         return self._device_cache
+
+    def has_device(self, device):
+        return self.device_cache.has_device(
+            device,
+            self.last_update_date)
+
+    # def check_device(self, device):
+    #     return self.device_cache.check_device(
+    #         device,
+    #         self.last_update_date)
+
+    def add_or_update_device(self, device):
+        self.device_cache.add_or_update_device(
+            device,
+            self.last_update_date)
 
     @property
     def last_update_date(self):
@@ -237,6 +256,34 @@ class Collector(object):
             log.error(pe_m)
             raise InvalidPacketActionCollectorException(pe_m)
 
+    def _record_device_status(self, device):
+        try:
+            device_type = self.normalize_input(device.type)
+            hostname = device.hostname
+            ipaddress = str(device.ipaddress)
+            macaddress = str(device.macaddress)
+            self.add_or_update_device(device)
+            status_value = 1
+            d_m = (f'parsed device: {device} to get '
+                   f'device_type: {device_type}, '
+                   f'hostname: {hostname}, '
+                   f'ipaddress: {ipaddress}, '
+                   f'macaddress: {macaddress}, '
+                   f'status_value: {status_value}')
+            log.debug(d_m)
+            Metrics.ROUTER_DEVICE_CONNECTED_STATUS.labels(
+                router_name=self.router_name,
+                device_type=device_type,
+                hostname=hostname,
+                ip_address=ipaddress,
+                mac_address=macaddress,
+            ).set(status_value)
+
+        except Exception as unexp:
+            u_m = f'recording device status got unexp: {unexp}'
+            log.error(u_m)
+            raise CollectordRecordDeviceStatusException(u_m)
+
     def _record_device_packets(self, device, packet_action):
         try:
             packets = self._get_packets_for_action(device, packet_action)
@@ -266,17 +313,7 @@ class Collector(object):
             raise CollectordRecordPacketActionException(u_m)
 
     def _record_device_metrics(self, device):
-        device_type = self.normalize_input(device.type)
-        hostname = device.hostname
-        ipaddress = str(device.ipaddress)
-        macaddress = str(device.macaddress)
-        Metrics.ROUTER_DEVICE_CONNECTED_STATUS.labels(
-            router_name=self.router_name,
-            device_type=device_type,
-            hostname=hostname,
-            ip_address=ipaddress,
-            mac_address=macaddress,
-        ).set(1)
+        self._record_device_status(device)
         for packet_action in PacketActions.metrics_actions_list():
             self._record_device_packets(device, packet_action)
 
