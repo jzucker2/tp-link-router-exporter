@@ -104,10 +104,12 @@ class Collector(object):
             self.last_update_date)
 
     def get_stale_devices_from_cache(self):
-        return self.device_cache.get_stale_devices()
+        return self.device_cache.get_stale_devices(
+            self.last_update_date)
 
     def drop_all_stale_devices_from_cache(self):
-        return self.device_cache.drop_all_stale_devices()
+        return self.device_cache.drop_all_stale_devices(
+            self.last_update_date)
 
     @property
     def last_update_date(self):
@@ -115,7 +117,7 @@ class Collector(object):
 
     def _update_last_update_date(self):
         self._inc_scrape_event(ScrapeEvents.UPDATE_LAST_UPDATE_DATE)
-        self._last_updated_date = self.get_now()
+        self._last_update_date = self.get_now()
 
     @classmethod
     def get_now(cls):
@@ -263,6 +265,7 @@ class Collector(object):
 
     def _record_found_device_status(self, device):
         try:
+            log.debug(f'recording found device: {device}')
             device_type = self.normalize_input(device.type)
             hostname = device.hostname
             ipaddress = str(device.ipaddress)
@@ -322,6 +325,8 @@ class Collector(object):
 
     def _record_missing_and_drop_stale_devices(self):
         try:
+            log.debug(f'{self.router_name} => record '
+                     f'missing and drop stale devices')
             stale_devices = self.get_stale_devices_from_cache()
             for cached_device in stale_devices:
                 device = cached_device.device
@@ -329,12 +334,13 @@ class Collector(object):
                 hostname = device.hostname
                 ipaddress = str(device.ipaddress)
                 macaddress = str(device.macaddress)
-                d_m = (f'parsed device: {device} to get '
+                d_m = (f'mark disconnected device: {device} to get '
                        f'device_type: {device_type}, '
                        f'hostname: {hostname}, '
                        f'ipaddress: {ipaddress}, '
                        f'macaddress: {macaddress}, ')
-                log.debug(d_m)
+                # FIXME: turn back to debug before merging
+                log.info(d_m)
                 Metrics.ROUTER_DEVICE_CONNECTED_STATUS.labels(
                     router_name=self.router_name,
                     device_type=device_type,

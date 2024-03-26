@@ -22,6 +22,9 @@ class DeviceCache(object):
         super().__init__()
         self._devices = {}
 
+    def __repr__(self):
+        return f'DeviceCache ({len(self.devices)})'
+
     @classmethod
     def default_device_cache(cls):
         return cls()
@@ -32,7 +35,7 @@ class DeviceCache(object):
 
     @property
     def devices(self):
-        return self.devices
+        return self._devices
 
     def get_key(self, device, update_date):
         device_hash = str(device.macaddress)
