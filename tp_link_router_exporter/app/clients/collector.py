@@ -326,7 +326,7 @@ class Collector(object):
     def _record_missing_and_drop_stale_devices(self):
         try:
             log.debug(f'{self.router_name} => record '
-                     f'missing and drop stale devices')
+                      f'missing and drop stale devices')
             stale_devices = self.get_stale_devices_from_cache()
             for cached_device in stale_devices:
                 device = cached_device.device
