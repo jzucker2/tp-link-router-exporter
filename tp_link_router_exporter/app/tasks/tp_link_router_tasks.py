@@ -7,6 +7,9 @@ from .tp_link_router_pinger import TPLinkRouterPinger
 log = app.logger
 
 
+router = CollectorRouter()
+
+
 # TODO: make this configurable and turn and off as well
 @scheduler.task(
     "interval",
@@ -24,7 +27,6 @@ def perform_router_metrics_update():
     log.debug(pu_m)
 
     with scheduler.app.app_context():
-        router = CollectorRouter()
         response = router.handle_collector_metrics_update_route_response()
         r_m = (f'scheduled tp link router metrics '
                f'update got response: {response}')
