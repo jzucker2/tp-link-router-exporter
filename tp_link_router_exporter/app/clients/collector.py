@@ -346,7 +346,7 @@ class Collector(object):
             log.debug(f'{self.router_name} => record '
                       f'missing and drop stale devices')
             stale_devices = self.get_stale_device_map_from_cache()
-            log.info(f'recording missing stale_devices: {stale_devices}')
+            log.debug(f'recording missing stale_devices: {stale_devices}')
             for cached_device in stale_devices.values():
                 device = cached_device.device
                 device_type = self.normalize_input(device.type)
@@ -359,7 +359,7 @@ class Collector(object):
                        f'ipaddress: {ipaddress}, '
                        f'macaddress: {macaddress}, ')
                 # FIXME: turn back to debug before merging
-                log.info(d_m)
+                log.debug(d_m)
                 Metrics.ROUTER_DEVICE_CONNECTED_STATUS.labels(
                     router_name=self.router_name,
                     device_type=device_type,
@@ -368,10 +368,10 @@ class Collector(object):
                     mac_address=macaddress,
                 ).set(0)
             self._inc_scrape_event(ScrapeEvents.RECORD_MISSING_DEVICES)
-            log.info('now drop all stale devices from cache')
+            log.debug('now drop all stale devices from cache')
             self.drop_all_stale_devices_from_cache()
             self._inc_scrape_event(ScrapeEvents.DROP_ALL_STALE_DEVICES)
-            log.info('all done with missing devices')
+            log.debug('all done with missing devices')
 
         except Exception as unexp:
             u_m = f'recording missing device status got unexp: {unexp}'
@@ -519,7 +519,7 @@ class Collector(object):
             # Get IPv4 status
             # FIXME: get_ipv4_status raises an exception in underlying client
             ipv4_status = self._get_ipv4_status()
-            log.info(f'router ipv4_status: {ipv4_status}')
+            log.debug(f'router ipv4_status: {ipv4_status}')
             self._record_ipv4_status_metrics(ipv4_status)
         except CollectorFetchException as cfe:
             log.warning(f'cannot record ipv4 status due to cfe: {cfe}')
