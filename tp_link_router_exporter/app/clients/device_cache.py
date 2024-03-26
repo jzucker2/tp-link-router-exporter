@@ -1,11 +1,9 @@
-from datetime import datetime
 from flask import current_app as app
 
 
 log = app.logger
 
 
-# TODO: need to include date checked so I can get all the other devices
 class DeviceCacheException(Exception):
     pass
 
@@ -46,13 +44,34 @@ class DeviceCache(object):
         key = self.get_key(device, update_date)
         self.devices[key] = DeviceCacheValue(device, update_date)
 
+    def get_device(self, device, update_date):
+        key = self.get_key(device, update_date)
+        return self.devices[key]
+
     def has_device(self, device, update_date):
         key = self.get_key(device, update_date)
         return bool(key in self.devices)
 
-    def check_device(self, device, update_date):
-        pass
-        # if self.has_device(device, update_date):
-        #     self.add_device(device, update_date)
-        #     return True
-        # self.add_device(device, update_date)
+    @classmethod
+    def is_stale(cls, cached_device, update_date):
+        return bool(cached_device.update_date < update_date)
+
+    @classmethod
+    def is_fresh(cls, cached_device, update_date):
+        return not cls.is_stale(cached_device, update_date)
+
+    def get_stale_devices(self, update_date):
+        return {
+            k: v for k, v
+            in self.devices.items() if self.is_stale(v, update_date)
+        }
+
+    def get_fresh_devices_map(self, update_date):
+        return {
+            k: v for k, v
+            in self.devices.items() if self.is_fresh(v, update_date)
+        }
+
+    def drop_stale_devices(self, update_date):
+        fresh_devices = self.get_fresh_devices_map(update_date)
+        self._devices = fresh_devices

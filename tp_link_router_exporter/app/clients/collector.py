@@ -94,15 +94,16 @@ class Collector(object):
             device,
             self.last_update_date)
 
-    # def check_device(self, device):
-    #     return self.device_cache.check_device(
-    #         device,
-    #         self.last_update_date)
-
     def add_or_update_device(self, device):
         self.device_cache.add_or_update_device(
             device,
             self.last_update_date)
+
+    def get_stale_devices_from_cache(self):
+        return self.device_cache.get_stale_devices()
+
+    def drop_stale_devices_from_cache(self):
+        return self.device_cache.drop_stale_devices()
 
     @property
     def last_update_date(self):
@@ -256,20 +257,18 @@ class Collector(object):
             log.error(pe_m)
             raise InvalidPacketActionCollectorException(pe_m)
 
-    def _record_device_status(self, device):
+    def _record_found_device_status(self, device):
         try:
             device_type = self.normalize_input(device.type)
             hostname = device.hostname
             ipaddress = str(device.ipaddress)
             macaddress = str(device.macaddress)
             self.add_or_update_device(device)
-            status_value = 1
             d_m = (f'parsed device: {device} to get '
                    f'device_type: {device_type}, '
                    f'hostname: {hostname}, '
                    f'ipaddress: {ipaddress}, '
-                   f'macaddress: {macaddress}, '
-                   f'status_value: {status_value}')
+                   f'macaddress: {macaddress}, ')
             log.debug(d_m)
             Metrics.ROUTER_DEVICE_CONNECTED_STATUS.labels(
                 router_name=self.router_name,
@@ -277,7 +276,7 @@ class Collector(object):
                 hostname=hostname,
                 ip_address=ipaddress,
                 mac_address=macaddress,
-            ).set(status_value)
+            ).set(1)
 
         except Exception as unexp:
             u_m = f'recording device status got unexp: {unexp}'
@@ -313,9 +312,39 @@ class Collector(object):
             raise CollectordRecordPacketActionException(u_m)
 
     def _record_device_metrics(self, device):
-        self._record_device_status(device)
+        self._record_found_device_status(device)
         for packet_action in PacketActions.metrics_actions_list():
             self._record_device_packets(device, packet_action)
+
+    def _drop_missing_devices(self):
+        try:
+            stale_devices = self.get_stale_devices_from_cache()
+            for device in stale_devices:
+                device_type = self.normalize_input(device.type)
+                hostname = device.hostname
+                ipaddress = str(device.ipaddress)
+                macaddress = str(device.macaddress)
+                d_m = (f'parsed device: {device} to get '
+                       f'device_type: {device_type}, '
+                       f'hostname: {hostname}, '
+                       f'ipaddress: {ipaddress}, '
+                       f'macaddress: {macaddress}, ')
+                log.debug(d_m)
+                Metrics.ROUTER_DEVICE_CONNECTED_STATUS.labels(
+                    router_name=self.router_name,
+                    device_type=device_type,
+                    hostname=hostname,
+                    ip_address=ipaddress,
+                    mac_address=macaddress,
+                ).set(0)
+            log.debug('now drop stale devices from cache')
+            self.drop_stale_devices_from_cache()
+            log.debug('all done with missing devices')
+
+        except Exception as unexp:
+            u_m = f'recording device status got unexp: {unexp}'
+            log.error(u_m)
+            raise CollectordRecordDeviceStatusException(u_m)
 
     def _record_devices_metrics(self, devices):
         if not devices:
@@ -325,6 +354,12 @@ class Collector(object):
         for device in devices:
             log.debug(f'recording metrics for device: {device}')
             self._record_device_metrics(device)
+
+        log.debug(f'({self.last_update_date}) after device metrics, '
+                  f'need to unset and drop all devices not found')
+        self._drop_missing_devices()
+        log.debug(f'({self.last_update_date}) completely done with '
+                  f'devices metrics, including cache')
 
     def _get_firmware_property_value(self, firmware, property):
         if property == RouterFirmwareProperties.HARDWARE_VERSION:
