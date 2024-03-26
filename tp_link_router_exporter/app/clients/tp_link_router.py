@@ -1,9 +1,16 @@
+import os
 from tplinkrouterc6u import TplinkRouter
 from flask import current_app as app
 from .env_vars import EnvVars
 
 
 log = app.logger
+
+
+DEFAULT_TP_LINK_ROUTER_TIMEOUT = 20
+TP_LINK_ROUTER_TIMEOUT = int(os.environ.get(
+    'TP_LINK_ROUTER_TIMEOUT',
+    DEFAULT_TP_LINK_ROUTER_TIMEOUT))
 
 
 # https://github.com/AlexandrErohin/TP-Link-Archer-C6U
@@ -53,7 +60,8 @@ class TPLinkRouter(object):
             return self._router
         self._router = TplinkRouter(
             self.router_ip,
-            self.router_password)
+            self.router_password,
+            timeout=TP_LINK_ROUTER_TIMEOUT)
         return self._router
 
     def authorize(self):

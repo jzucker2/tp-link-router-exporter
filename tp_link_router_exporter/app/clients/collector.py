@@ -103,8 +103,8 @@ class Collector(object):
             device,
             self.last_update_date)
 
-    def get_stale_devices_from_cache(self):
-        return self.device_cache.get_stale_devices(
+    def get_stale_device_map_from_cache(self):
+        return self.device_cache.get_stale_devices_map(
             self.last_update_date)
 
     def drop_all_stale_devices_from_cache(self):
@@ -143,9 +143,35 @@ class Collector(object):
         self._inc_scrape_event(event)
 
     def _logout(self):
-        self.router_client.logout()
-        event = ScrapeEvents.LOGOUT
-        self._inc_scrape_event(event)
+        try:
+            self.router_client.logout()
+        except Exception as logout_exc:
+            # log.info(f'possible_exc: str() => {str(possible_exc)} args: {possible_exc.args}')
+            if str(logout_exc) == 'Not authorised':
+                nae_m = (f'logout got not authorised exception from router_client '
+                         f'logout_exc: {logout_exc}')
+                log.error(nae_m)
+                self._inc_scrape_event(ScrapeEvents.LOGOUT_NOT_AUTHORIZED_ERROR)
+            else:
+                unae_m = (f'logout got unexpected exception from router_client '
+                         f'logout_exc: {logout_exc}')
+                log.error(unae_m)
+                self._inc_scrape_event(ScrapeEvents.LOGOUT_UNEXPECTED_ERROR)
+
+        # except ValueError as e:  # as e syntax added in ~python2.5
+        #     if str(e) != "foo":
+        #         raise
+        #     else:
+        #         print("caught!")
+        # except Exception('Not authorised') as not_authorized_exc:
+        #     nae_m = (f'got not authorised exception from router_client '
+        #              f'not_authorized_exc: {not_authorized_exc}')
+        #     log.error(nae_m)
+        #     self._inc_scrape_event(ScrapeEvents.LOGOUT_ERROR)
+        else:
+            event = ScrapeEvents.LOGOUT
+            self._inc_scrape_event(event)
+
 
     def _get_firmware(self):
         try:
@@ -325,10 +351,13 @@ class Collector(object):
 
     def _record_missing_and_drop_stale_devices(self):
         try:
-            log.debug(f'{self.router_name} => record '
+            self._inc_scrape_event(
+                ScrapeEvents.ATTEMPT_DEVICE_CACHED_ROUTER_METRICS)
+            log.info(f'{self.router_name} => record '
                       f'missing and drop stale devices')
-            stale_devices = self.get_stale_devices_from_cache()
-            for cached_device in stale_devices:
+            stale_devices = self.get_stale_device_map_from_cache()
+            log.info(f'recording missing stale_devices: {stale_devices}')
+            for cached_device in stale_devices.values():
                 device = cached_device.device
                 device_type = self.normalize_input(device.type)
                 hostname = device.hostname
@@ -349,10 +378,10 @@ class Collector(object):
                     mac_address=macaddress,
                 ).set(0)
             self._inc_scrape_event(ScrapeEvents.RECORD_MISSING_DEVICES)
-            log.debug('now drop all stale devices from cache')
+            log.info('now drop all stale devices from cache')
             self.drop_all_stale_devices_from_cache()
             self._inc_scrape_event(ScrapeEvents.DROP_ALL_STALE_DEVICES)
-            log.debug('all done with missing devices')
+            log.info('all done with missing devices')
 
         except Exception as unexp:
             u_m = f'recording missing device status got unexp: {unexp}'
@@ -367,12 +396,6 @@ class Collector(object):
         for device in devices:
             log.debug(f'recording metrics for device: {device}')
             self._record_device_metrics(device)
-
-        log.debug(f'({self.last_update_date}) after device metrics, '
-                  f'need to unset and drop all devices not found')
-        self._record_missing_and_drop_stale_devices()
-        log.debug(f'({self.last_update_date}) completely done with '
-                  f'devices metrics, including cache')
 
     def _get_firmware_property_value(self, firmware, property):
         if property == RouterFirmwareProperties.HARDWARE_VERSION:
@@ -542,9 +565,10 @@ class Collector(object):
             raise CollectorRecordException(u_m)
 
     # actual part where we decide what metrics to scrape
-    def _get_and_record_router_metrics(self):
+    def _get_and_record_authed_router_metrics(self):
         log.debug('_get_router_metrics')
-        self._inc_scrape_event(ScrapeEvents.ATTEMPT_GET_ROUTER_METRICS)
+        event = ScrapeEvents.ATTEMPT_GET_AUTHED_ROUTER_METRICS
+        self._inc_scrape_event(event)
         # authorizing
         a_m = (f'attempting to actually get metrics at '
                f'self.router_ip: {self.router_ip}')
@@ -574,7 +598,7 @@ class Collector(object):
             sa_m = (f'self.router_ip: {self.router_ip} '
                     f'succeeded at auth')
             log.debug(sa_m)
-            self._get_and_record_router_metrics()
+            self._get_and_record_authed_router_metrics()
         except Exception as unexp:
             u_m = (f'self.router_ip: {self.router_ip} '
                    f'got exception unexp: {unexp}')
@@ -592,6 +616,11 @@ class Collector(object):
             l_m = f'now logging out from self.router_ip: {self.router_ip}'
             log.debug(l_m)
             self._logout()
+            log.info(f'({self.last_update_date}) after device metrics, '
+                      f'need to unset and drop all devices not found')
+            self._record_missing_and_drop_stale_devices()
+            log.info(f'({self.last_update_date}) completely done with '
+                      f'devices metrics, including cache')
 
     def get_router_metrics(self):
         return self._execute_get_router_metrics()
