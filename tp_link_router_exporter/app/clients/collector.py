@@ -25,15 +25,19 @@ class CollectorRecordException(CollectorException):
     pass
 
 
-class CollectordRecordDeviceStatusException(CollectorRecordException):
+class CollectorRecordFoundDeviceStatusException(CollectorRecordException):
     pass
 
 
-class CollectordRecordPacketActionException(CollectorRecordException):
+class CollectorRecordMissingDeviceStatusException(CollectorRecordException):
     pass
 
 
-class CollectordRecordDHCPLeaseException(CollectorRecordException):
+class CollectorRecordPacketActionException(CollectorRecordException):
+    pass
+
+
+class CollectorRecordDHCPLeaseException(CollectorRecordException):
     pass
 
 
@@ -279,9 +283,9 @@ class Collector(object):
             ).set(1)
 
         except Exception as unexp:
-            u_m = f'recording device status got unexp: {unexp}'
+            u_m = f'recording found device status got unexp: {unexp}'
             log.error(u_m)
-            raise CollectordRecordDeviceStatusException(u_m)
+            raise CollectorRecordFoundDeviceStatusException(u_m)
 
     def _record_device_packets(self, device, packet_action):
         try:
@@ -309,7 +313,7 @@ class Collector(object):
         except Exception as unexp:
             u_m = f'recording packets got unexp: {unexp}'
             log.error(u_m)
-            raise CollectordRecordPacketActionException(u_m)
+            raise CollectorRecordPacketActionException(u_m)
 
     def _record_device_metrics(self, device):
         self._record_found_device_status(device)
@@ -342,9 +346,9 @@ class Collector(object):
             log.debug('all done with missing devices')
 
         except Exception as unexp:
-            u_m = f'recording device status got unexp: {unexp}'
+            u_m = f'recording missing device status got unexp: {unexp}'
             log.error(u_m)
-            raise CollectordRecordDeviceStatusException(u_m)
+            raise CollectorRecordMissingDeviceStatusException(u_m)
 
     def _record_devices_metrics(self, devices):
         if not devices:
@@ -451,7 +455,7 @@ class Collector(object):
         except Exception as unexp:
             u_m = f'recording dhcp lease got unexp: {unexp}'
             log.error(u_m)
-            raise CollectordRecordDHCPLeaseException(u_m)
+            raise CollectorRecordDHCPLeaseException(u_m)
 
     def _record_ipv4_dhcp_leases(self, leases):
         if not leases:
