@@ -358,7 +358,6 @@ class Collector(object):
                        f'hostname: {hostname}, '
                        f'ipaddress: {ipaddress}, '
                        f'macaddress: {macaddress}, ')
-                # FIXME: turn back to debug before merging
                 log.debug(d_m)
                 Metrics.ROUTER_DEVICE_CONNECTED_STATUS.labels(
                     router_name=self.router_name,
