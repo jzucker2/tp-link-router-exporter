@@ -320,7 +320,7 @@ class Collector(object):
         for packet_action in PacketActions.metrics_actions_list():
             self._record_device_packets(device, packet_action)
 
-    def _drop_missing_devices(self):
+    def _record_missing_and_drop_stale_devices(self):
         try:
             stale_devices = self.get_stale_devices_from_cache()
             for device in stale_devices:
@@ -341,8 +341,10 @@ class Collector(object):
                     ip_address=ipaddress,
                     mac_address=macaddress,
                 ).set(0)
+            self._inc_scrape_event(ScrapeEvents.RECORD_MISSING_DEVICES)
             log.debug('now drop stale devices from cache')
             self.drop_stale_devices_from_cache()
+            self._inc_scrape_event(ScrapeEvents.DROP_STALE_DEVICES)
             log.debug('all done with missing devices')
 
         except Exception as unexp:
@@ -361,7 +363,7 @@ class Collector(object):
 
         log.debug(f'({self.last_update_date}) after device metrics, '
                   f'need to unset and drop all devices not found')
-        self._drop_missing_devices()
+        self._record_missing_and_drop_stale_devices()
         log.debug(f'({self.last_update_date}) completely done with '
                   f'devices metrics, including cache')
 

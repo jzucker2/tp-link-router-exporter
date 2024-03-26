@@ -14,6 +14,8 @@ class ScrapeEvents(Enum):
     GET_IPV4_DHCP_LEASES = 'get_ipv4_dhcp_leases'
     START_ROUTER_SCRAPE_FLOW = 'start_router_scrape_flow'
     ATTEMPT_GET_ROUTER_METRICS = 'attempt_get_router_metrics'
+    RECORD_MISSING_DEVICES = 'record_missing_devices'
+    DROP_STALE_DEVICES = 'drop_stale_devices'
     SUCCESS = 'success'
     ERROR = 'error'
 
