@@ -15,7 +15,8 @@ class DeviceCacheValue(object):
         self.update_date = update_date
 
     def __repr__(self):
-        return f'DeviceCacheValue ({self.update_date}) => {self.device.ipaddress}'
+        return (f'DeviceCacheValue ({self.update_date}) '
+                f'=> {self.device.ipaddress}')
 
 
 class DeviceCache(object):

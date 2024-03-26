@@ -146,32 +146,22 @@ class Collector(object):
         try:
             self.router_client.logout()
         except Exception as logout_exc:
-            # log.info(f'possible_exc: str() => {str(possible_exc)} args: {possible_exc.args}')
             if str(logout_exc) == 'Not authorised':
-                nae_m = (f'logout got not authorised exception from router_client '
-                         f'logout_exc: {logout_exc}')
+                nae_m = (f'logout got not authorised exception '
+                         f'from router_client logout_exc: {logout_exc}')
                 log.error(nae_m)
-                self._inc_scrape_event(ScrapeEvents.LOGOUT_NOT_AUTHORIZED_ERROR)
+                self._inc_scrape_event(
+                    ScrapeEvents.LOGOUT_NOT_AUTHORIZED_ERROR)
             else:
-                unae_m = (f'logout got unexpected exception from router_client '
-                         f'logout_exc: {logout_exc}')
+                unae_m = (f'logout got unexpected exception from '
+                          f'router_client logout_exc: {logout_exc}')
                 log.error(unae_m)
-                self._inc_scrape_event(ScrapeEvents.LOGOUT_UNEXPECTED_ERROR)
+                self._inc_scrape_event(
+                    ScrapeEvents.LOGOUT_UNEXPECTED_ERROR)
 
-        # except ValueError as e:  # as e syntax added in ~python2.5
-        #     if str(e) != "foo":
-        #         raise
-        #     else:
-        #         print("caught!")
-        # except Exception('Not authorised') as not_authorized_exc:
-        #     nae_m = (f'got not authorised exception from router_client '
-        #              f'not_authorized_exc: {not_authorized_exc}')
-        #     log.error(nae_m)
-        #     self._inc_scrape_event(ScrapeEvents.LOGOUT_ERROR)
         else:
             event = ScrapeEvents.LOGOUT
             self._inc_scrape_event(event)
-
 
     def _get_firmware(self):
         try:
