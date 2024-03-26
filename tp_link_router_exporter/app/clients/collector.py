@@ -106,8 +106,8 @@ class Collector(object):
     def get_stale_devices_from_cache(self):
         return self.device_cache.get_stale_devices()
 
-    def drop_stale_devices_from_cache(self):
-        return self.device_cache.drop_stale_devices()
+    def drop_all_stale_devices_from_cache(self):
+        return self.device_cache.drop_all_stale_devices()
 
     @property
     def last_update_date(self):
@@ -323,7 +323,8 @@ class Collector(object):
     def _record_missing_and_drop_stale_devices(self):
         try:
             stale_devices = self.get_stale_devices_from_cache()
-            for device in stale_devices:
+            for cached_device in stale_devices:
+                device = cached_device.device
                 device_type = self.normalize_input(device.type)
                 hostname = device.hostname
                 ipaddress = str(device.ipaddress)
@@ -342,9 +343,9 @@ class Collector(object):
                     mac_address=macaddress,
                 ).set(0)
             self._inc_scrape_event(ScrapeEvents.RECORD_MISSING_DEVICES)
-            log.debug('now drop stale devices from cache')
-            self.drop_stale_devices_from_cache()
-            self._inc_scrape_event(ScrapeEvents.DROP_STALE_DEVICES)
+            log.debug('now drop all stale devices from cache')
+            self.drop_all_stale_devices_from_cache()
+            self._inc_scrape_event(ScrapeEvents.DROP_ALL_STALE_DEVICES)
             log.debug('all done with missing devices')
 
         except Exception as unexp:

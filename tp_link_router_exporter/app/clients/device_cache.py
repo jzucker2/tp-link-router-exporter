@@ -72,6 +72,6 @@ class DeviceCache(object):
             in self.devices.items() if self.is_fresh(v, update_date)
         }
 
-    def drop_stale_devices(self, update_date):
+    def drop_all_stale_devices(self, update_date):
         fresh_devices = self.get_fresh_devices_map(update_date)
         self._devices = fresh_devices
