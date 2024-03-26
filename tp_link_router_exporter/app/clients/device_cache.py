@@ -43,9 +43,6 @@ class DeviceCache(object):
     def get_key(self, device, update_date):
         device_hash = str(device.macaddress)
         return device_hash
-        # update_hash = self.get_date_hash_string(update_date)
-        # key = f'{device_hash}=={update_hash}'
-        # return key
 
     def add_or_update_device(self, device, update_date):
         key = self.get_key(device, update_date)
@@ -57,7 +54,7 @@ class DeviceCache(object):
 
     @classmethod
     def is_stale(cls, cached_device, update_date):
-        log.info(f'cached_device: {cached_device} => {update_date}')
+        log.debug(f'cached_device: {cached_device} => {update_date}')
         return bool(cached_device.update_date < update_date)
 
     @classmethod
@@ -65,28 +62,25 @@ class DeviceCache(object):
         return not cls.is_stale(cached_device, update_date)
 
     def get_stale_devices_map(self, update_date):
-        log.info(f'get_stale_devices_map {len(self.devices)}')
+        log.debug(f'get_stale_devices_map {len(self.devices)}')
         dev_map = {
             k: v for k, v
             in self.devices.items() if self.is_stale(v, update_date)
         }
-        log.info(f'dev_map: {dev_map}')
+        log.debug(f'dev_map: {dev_map}')
         return dev_map
 
     def get_fresh_devices_map(self, update_date):
-        log.info(f'get_fresh_devices_map {len(self.devices)}')
+        log.debug(f'get_fresh_devices_map {len(self.devices)}')
         return {
             k: v for k, v
             in self.devices.items() if self.is_fresh(v, update_date)
         }
 
     def drop_all_stale_devices(self, update_date):
-        log.info(f'^^^^^^^^^^^^ drop_all_stale_devices starting ({len(self.devices)}) {self.devices}')
+        log.debug(f'^^^^^^^^^^^^ drop_all_stale_devices '
+                  f'starting ({len(self.devices)}) {self.devices}')
         fresh_devices = self.get_fresh_devices_map(update_date)
-        log.info('=====================')
-        log.info('=====================')
-        log.info('=====================')
-        log.info('=====================')
-        log.info('=====================>')
-        log.info(f'------------ drop_all_stale_devices fresh_devices ({len(fresh_devices)}) {fresh_devices}')
+        log.debug(f'------------ drop_all_stale_devices '
+                  f'fresh_devices ({len(fresh_devices)}) {fresh_devices}')
         self._devices = fresh_devices
