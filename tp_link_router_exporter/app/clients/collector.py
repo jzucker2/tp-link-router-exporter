@@ -343,7 +343,7 @@ class Collector(object):
         try:
             self._inc_scrape_event(
                 ScrapeEvents.ATTEMPT_DEVICE_CACHED_ROUTER_METRICS)
-            log.info(f'{self.router_name} => record '
+            log.debug(f'{self.router_name} => record '
                       f'missing and drop stale devices')
             stale_devices = self.get_stale_device_map_from_cache()
             log.info(f'recording missing stale_devices: {stale_devices}')
@@ -606,10 +606,10 @@ class Collector(object):
             l_m = f'now logging out from self.router_ip: {self.router_ip}'
             log.debug(l_m)
             self._logout()
-            log.info(f'({self.last_update_date}) after device metrics, '
+            log.debug(f'({self.last_update_date}) after device metrics, '
                       f'need to unset and drop all devices not found')
             self._record_missing_and_drop_stale_devices()
-            log.info(f'({self.last_update_date}) completely done with '
+            log.debug(f'({self.last_update_date}) completely done with '
                       f'devices metrics, including cache')
 
     def get_router_metrics(self):
