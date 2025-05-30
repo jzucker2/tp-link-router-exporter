@@ -1,5 +1,3 @@
-version: '3.7'
-
 services:
 
   tp_link_router_exporter:
