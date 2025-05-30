@@ -84,6 +84,9 @@ class CollectorRouter(Router):
             log.debug('Collector => Using yml config file for router configs')
             routers = self._get_all_config_routers()
             log.info(f'Collector => got routers: {routers}')
+            if not routers or not len(routers):
+                log.error('Found no routers, so nothing to scrape')
+                return []
             for router_config in routers:
                 log.info(f'Collector => Creating collector for '
                          f'router_config: {router_config}')
