@@ -81,9 +81,12 @@ class CollectorRouter(Router):
     def _create_collectors(self):
         collectors = []
         if self.should_use_config_file():
-            log.debug('Using yml config file for router configs')
+            log.debug('Collector => Using yml config file for router configs')
             routers = self._get_all_config_routers()
+            log.info(f'Collector => got routers: {routers}')
             for router_config in routers:
+                log.info(f'Collector => Creating collector for '
+                         f'router_config: {router_config}')
                 collector = self._create_collector_from_config(router_config)
                 collectors.append(collector)
         else:
