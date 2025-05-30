@@ -36,4 +36,4 @@ class ConfigParser(object):
 
     @classmethod
     def get_routers(cls, config):
-        return config.get(ConfigKeys.ROUTERS.key_name, [])
+        return config[ConfigKeys.ROUTERS.key_name]

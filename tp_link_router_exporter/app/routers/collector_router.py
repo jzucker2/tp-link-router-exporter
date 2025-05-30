@@ -71,7 +71,12 @@ class CollectorRouter(Router):
 
     def _get_all_config_routers(self):
         config = self.config
-        return ConfigParser.get_routers(config)
+        try:
+            return ConfigParser.get_routers(config)
+        except KeyError:
+            log.error('There are no routers in config')
+            # Return empty array to prevent exceptions
+            return []
 
     def _create_collectors(self):
         collectors = []
